@@ -1,9 +1,6 @@
 import re
 import requests
 from typing import Dict, List
-import json
-import yaml
-import string
 import itertools
 import sys
 
@@ -11,16 +8,16 @@ import sys
 base_url = 'https://raw.githubusercontent.com/ethereum/consensus-specs'
 
 primitive_types = {
-    'boolean': { 'type': 'boolean', 'example': False },
-    'uint8': { 'type': 'integer', 'example': 1 },
-    'uint64': { 'type': 'string', 'example': '1' },
-    'uint256': { 'type': 'string', 'example': '1' },
+    'boolean': {'type': 'boolean', 'example': False},
+    'uint8': {'type': 'integer', 'example': 1},
+    'uint64': {'type': 'string', 'example': '1'},
+    'uint256': {'type': 'string', 'example': '1'},
 }
 
 
 def parse_specs(version: str, sources: Dict) -> Dict:
     out = {
-        'primitive': primitive_types
+        'primitive': primitive_types.copy()
     }
     # https://raw.githubusercontent.com/ethereum/consensus-specs/v1.4.0-beta.5/specs/phase0/beacon-chain.md
     for fork in sources:
@@ -57,7 +54,7 @@ def parse_container_code_blocks(code_blocks: List[str], fork: str, out: Dict):
             unknown_code_blocks.append(code)
 
     if len(unknown_code_blocks) > 0:
-        # Break out of the recursive loop if no type is resolved in one iteration
+        # Break out of the recursive loop if no type is resolved
         if len(unknown_code_blocks) < len(code_blocks):
             parse_container_code_blocks(unknown_code_blocks, fork, out)
         else:
@@ -65,9 +62,15 @@ def parse_container_code_blocks(code_blocks: List[str], fork: str, out: Dict):
 
 
 def extract_custom_types_table(input: str) -> List[str]:
-    matches = re.findall(r'## Custom types(.*?)\n[#]+ [^\n]+', input, re.DOTALL)
+    matches = re.findall(
+        r'## Custom types(.*?)\n[#]+ [^\n]+',
+        input, re.DOTALL
+    )
     if matches:
-        return list(filter(lambda line: line.startswith('| `'), matches[0].strip().split('\n')))
+        return list(filter(
+            lambda line: line.startswith('| `'),
+            matches[0].strip().split('\n')
+        ))
     else:
         return []
 
@@ -75,7 +78,10 @@ def extract_custom_types_table(input: str) -> List[str]:
 def extract_container_code_blocks(input: str) -> List[str]:
     matches = re.findall(r'## Containers(.*?)\n## [^\n]+', input, re.DOTALL)
     if matches:
-        python_code_blocks = re.findall(r'```python\n(.*?)\n```', matches[0], re.DOTALL)
+        python_code_blocks = re.findall(
+            r'```python\n(.*?)\n```',
+            matches[0], re.DOTALL
+        )
         return python_code_blocks
     else:
         return []
@@ -85,7 +91,6 @@ def parse_custom_type_row(row: str, fork: str, out: Dict):
     # Attempts to match the format "| `Slot` | `uint64` | a slot number |"
     pattern = r'\|\s*`([^`]+)`\s*\|\s*`([^`]+)`\s*\|\s*([^|]+)\s*\|'
     match = re.search(pattern, row)
-    
     if match:
         # Extract the matched groups
         name, typename, comment = match.groups()
@@ -109,7 +114,7 @@ def parse_container_code_block(code: str, fork: str, out: Dict):
     }
 
 
-def parse_typename(input: str, out: Dict) -> str:
+def parse_typename(input: str, out: Dict) -> Dict:
     if input.startswith('Bitlist'):
         return {
           '$ref': '#/primitive/Bitlist'
@@ -129,7 +134,7 @@ def parse_typename(input: str, out: Dict) -> str:
         return {
           '$ref': '#/primitive/ByteVector'
         }
-    
+
     match = re.search(r'List\[(\w+),', input)
     if match:
         return {
@@ -149,15 +154,14 @@ def parse_typename(input: str, out: Dict) -> str:
     if match:
         if input not in out['primitive']:
             byte_len = int(match.group(1))
-            out['primitive'][input] = bytes_type(byte_len) 
+            out['primitive'][input] = bytes_type(byte_len)
         return {
             '$ref': f"#/primitive/{input}",
         }
 
-
     forks = list(out.keys())
     forks.reverse()
-    for fork in forks: 
+    for fork in forks:
         if input in out[fork]:
             return {
                 '$ref': f"#/{fork}/{input}"
@@ -188,9 +192,9 @@ class UnknownType(Exception):
         return f"UnknownType: {self.message}"
 
 
-def generate_alphanumeric_string(length):
-    chars = string.ascii_letters + string.digits  # All alphanumeric characters
-    looped_chars = itertools.cycle(chars)  # Create an infinite loop over the characters
+def generate_hex_string(length):
+    # Create an infinite loop over the characters
+    looped_chars = itertools.cycle('0123456789abcdef')
     # Take the first N characters from the looped iterator
     return ''.join(next(looped_chars) for _ in range(length))
 
@@ -199,6 +203,6 @@ def bytes_type(byte_len: int) -> Dict:
     return {
         'type': 'string',
         'format': 'hex',
-        'example': f"0x{generate_alphanumeric_string(byte_len)}",
+        'example': f"0x{generate_hex_string(byte_len)}",
         'pattern': f"^0x[a-fA-F0-9]{{{byte_len * 2}}}$",
     }
