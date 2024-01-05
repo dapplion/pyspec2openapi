@@ -1,7 +1,11 @@
-# test_parser.py
-import pytest
 import json
-from ..index import extract_container_code_blocks, extract_custom_types_table, parse_doc, parse_specs
+from ..index import (
+    extract_container_code_blocks,
+    extract_custom_types_table,
+    parse_doc,
+    parse_specs,
+)
+
 
 def test_parse_specs():
     sources = {
@@ -9,7 +13,7 @@ def test_parse_specs():
       'altair': ['beacon-chain.md', 'validator.md'],
       'bellatrix': ['beacon-chain.md', 'validator.md'],
       'capella': ['beacon-chain.md', 'validator.md'],
-      'deneb': ['polynomial-commitments.md', 'beacon-chain.md', 'validator.md'],
+      'deneb': ['polynomial-commitments.md', 'beacon-chain.md', 'validator.md'],  # noqa: E501
     }
     out = parse_specs('v1.4.0-beta.5', sources)
     print(json.dumps(out, indent=2))
@@ -31,8 +35,8 @@ Some text
 ## Next section
 """
     assert extract_custom_types_table(input) == [
-"| `Slot` | `uint64` | a slot number |",
-"| `Epoch` | `uint64` | an epoch number |"
+        "| `Slot` | `uint64` | a slot number |",
+        "| `Epoch` | `uint64` | an epoch number |"
     ]
 
 
@@ -66,8 +70,8 @@ Not relevant
 ```
 """
     assert extract_container_code_blocks(input) == [
-"Relevant code 1",
-"""Relevant code 2
+        "Relevant code 1",
+        """Relevant code 2
 Second line"""
             ]
 
@@ -112,69 +116,91 @@ class Attestation(Container):
 ## Next section
 """
 
-    out = {}
-    parse_doc(input, out)
+    out = {
+        'primitive': {
+            'boolean': {'type': 'boolean', 'example': False},
+            'uint64': {'type': 'string', 'example': '1'},
+        },
+        'phase0': {}
+    }
+    parse_doc(input, 'phase0', out)
     assert out == {
-  "Slot": {
-    "$ref": "#/primitive/uint64"
-  },
-  "Epoch": {
-    "$ref": "#/primitive/uint64"
-  },
-  "CommitteeIndex": {
-    "$ref": "#/primitive/uint64"
-  },
-  "Root": {
-    "$ref": "#/primitive/Bytes32"
-  },
-  "BLSSignature": {
-    "$ref": "#/primitive/Bytes96"
-  },
-  "Checkpoint": {
-    "type": "object",
-    "properties": {
-      "epoch": {
-        "$ref": "#/phase0/Epoch"
-      },
-      "root": {
-        "$ref": "#/phase0/Root"
-      }
-    }
-  },
-  "AttestationData": {
-    "type": "object",
-    "properties": {
-      "slot": {
-        "$ref": "#/phase0/Slot"
-      },
-      "index": {
-        "$ref": "#/phase0/CommitteeIndex"
-      },
-      "beacon_block_root": {
-        "$ref": "#/phase0/Root"
-      },
-      "source": {
-        "$ref": "#/phase0/Checkpoint"
-      },
-      "target": {
-        "$ref": "#/phase0/Checkpoint"
-      }
-    }
-  },
-  "Attestation": {
-    "type": "object",
-    "properties": {
-      "aggregation_bits": {
-        "$ref": "#/primitive/Bitlist"
-      },
-      "data": {
-        "$ref": "#/phase0/AttestationData"
-      },
-      "signature": {
-        "$ref": "#/phase0/BLSSignature"
-      }
-    }
-  }
-}
-
-
+        'primitive': {
+            'boolean': {'type': 'boolean', 'example': False},
+            'uint64': {'type': 'string', 'example': '1'},
+            'Bytes32': {
+                'type': 'string',
+                'format': 'hex',
+                'example': "0x0123456789abcdef0123456789abcdef",
+                'pattern': "^0x[a-fA-F0-9]{64}$",
+            },
+            'Bytes96': {
+                'type': 'string',
+                'format': 'hex',
+                'example': "0x0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",  # noqa: E501
+                'pattern': "^0x[a-fA-F0-9]{192}$",
+            }
+        },
+        "phase0": {
+              "Slot": {
+                "$ref": "#/primitive/uint64"
+              },
+              "Epoch": {
+                "$ref": "#/primitive/uint64"
+              },
+              "CommitteeIndex": {
+                "$ref": "#/primitive/uint64"
+              },
+              "Root": {
+                "$ref": "#/primitive/Bytes32"
+              },
+              "BLSSignature": {
+                "$ref": "#/primitive/Bytes96"
+              },
+              "Checkpoint": {
+                "type": "object",
+                "properties": {
+                  "epoch": {
+                    "$ref": "#/phase0/Epoch"
+                  },
+                  "root": {
+                    "$ref": "#/phase0/Root"
+                  }
+                }
+              },
+              "AttestationData": {
+                "type": "object",
+                "properties": {
+                  "slot": {
+                    "$ref": "#/phase0/Slot"
+                  },
+                  "index": {
+                    "$ref": "#/phase0/CommitteeIndex"
+                  },
+                  "beacon_block_root": {
+                    "$ref": "#/phase0/Root"
+                  },
+                  "source": {
+                    "$ref": "#/phase0/Checkpoint"
+                  },
+                  "target": {
+                    "$ref": "#/phase0/Checkpoint"
+                  }
+                }
+              },
+              "Attestation": {
+                "type": "object",
+                "properties": {
+                  "aggregation_bits": {
+                    "$ref": "#/primitive/Bitlist"
+                  },
+                  "data": {
+                    "$ref": "#/phase0/AttestationData"
+                  },
+                  "signature": {
+                    "$ref": "#/phase0/BLSSignature"
+                  }
+                }
+              }
+            }
+        }
