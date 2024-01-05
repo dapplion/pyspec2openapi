@@ -24,7 +24,7 @@ def main():
 
     out = parse_specs(config['version'], config['sources'])
     with open(out_path, 'w') as file:
-        file.write(yaml.dump(out))
+        file.write(yaml.dump(out, sort_keys=False))
 
 
 if __name__ == "__main__":
