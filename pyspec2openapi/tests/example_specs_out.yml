@@ -343,6 +343,7 @@ phase0:
         $ref: '#/phase0/Checkpoint'
       finalized_checkpoint:
         $ref: '#/phase0/Checkpoint'
+    description: phase0 Beacon state
   SignedVoluntaryExit:
     type: object
     properties:

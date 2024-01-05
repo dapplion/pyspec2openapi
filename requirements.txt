@@ -1,5 +1,6 @@
 PyYAML
 requests
+deepmerge
 types-requests
 types-PyYAML
 
