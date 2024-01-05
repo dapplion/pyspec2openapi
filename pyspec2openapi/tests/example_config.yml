@@ -16,7 +16,3 @@ ignore_classnames:
 exclude_comments:
   - '\[New [^\]]*\]'
   - '\[Modified [^\]]*\]'
-override_schema:
-  phase0:
-    BeaconState:
-      description: "phase0 Beacon state"
