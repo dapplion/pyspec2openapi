@@ -5,4 +5,6 @@ sources:
   bellatrix: [beacon-chain.md, validator.md]
   capella: [beacon-chain.md, validator.md]
   deneb: [polynomial-commitments.md, beacon-chain.md, validator.md]
-
+exclude_comments:
+  - '\[New [^\]]*\]'
+  - '\[Modified [^\]]*\]'

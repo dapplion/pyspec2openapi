@@ -22,7 +22,7 @@ def main():
     except yaml.YAMLError as exc:
         print(f"Error parsing YAML file: {exc}")
 
-    out = parse_specs(config['version'], config['sources'])
+    out = parse_specs(config)
     with open(out_path, 'w') as file:
         file.write(yaml.dump(out, sort_keys=False))
 

@@ -8,14 +8,17 @@ from ..index import (
 
 
 def test_parse_specs():
-    sources = {
-      'phase0': ['beacon-chain.md', 'validator.md'],
-      'altair': ['beacon-chain.md', 'validator.md'],
-      'bellatrix': ['beacon-chain.md', 'validator.md'],
-      'capella': ['beacon-chain.md', 'validator.md'],
-      'deneb': ['polynomial-commitments.md', 'beacon-chain.md', 'validator.md'],  # noqa: E501
+    config = {
+        'version': 'v1.4.0-beta.5',
+        'sources': {
+          'phase0': ['beacon-chain.md', 'validator.md'],
+          'altair': ['beacon-chain.md', 'validator.md'],
+          'bellatrix': ['beacon-chain.md', 'validator.md'],
+          'capella': ['beacon-chain.md', 'validator.md'],
+          'deneb': ['polynomial-commitments.md', 'beacon-chain.md', 'validator.md'],  # noqa: E501
+        }
     }
-    out = parse_specs('v1.4.0-beta.5', sources)
+    out = parse_specs(config)
     print(json.dumps(out, indent=2))
 
 
@@ -116,6 +119,7 @@ class Attestation(Container):
 ## Next section
 """
 
+    config = {}
     out = {
         'primitive': {
             'boolean': {'type': 'boolean', 'example': False},
@@ -123,7 +127,7 @@ class Attestation(Container):
         },
         'phase0': {}
     }
-    parse_doc(input, 'phase0', out)
+    parse_doc(input, 'phase0', config, out)
     assert out == {
         'primitive': {
             'boolean': {'type': 'boolean', 'example': False},
@@ -142,22 +146,37 @@ class Attestation(Container):
             }
         },
         "phase0": {
-              "Slot": {
-                "$ref": "#/primitive/uint64"
-              },
-              "Epoch": {
-                "$ref": "#/primitive/uint64"
-              },
-              "CommitteeIndex": {
-                "$ref": "#/primitive/uint64"
-              },
-              "Root": {
-                "$ref": "#/primitive/Bytes32"
-              },
-              "BLSSignature": {
-                "$ref": "#/primitive/Bytes96"
-              },
-              "Checkpoint": {
+            "Slot": {
+              "allOf": [
+                {"$ref": "#/primitive/uint64"},
+                {"description": "a slot number"}
+              ]
+            },
+            "Epoch": {
+              "allOf": [
+                {"$ref": "#/primitive/uint64"},
+                {"description": "an epoch number"}
+              ]
+            },
+            "CommitteeIndex": {
+              "allOf": [
+                {"$ref": "#/primitive/uint64"},
+                {"description": "a committee index at a slot"}
+              ]
+            },
+            "Root": {
+              "allOf": [
+                {"$ref": "#/primitive/Bytes32"},
+                {"description": "a Merkle root"}
+              ]
+            },
+            "BLSSignature": {
+              "allOf": [
+                {"$ref": "#/primitive/Bytes96"},
+                {"description": "a BLS12-381 signature"}
+              ]
+            },
+            "Checkpoint": {
                 "type": "object",
                 "properties": {
                   "epoch": {
@@ -168,7 +187,7 @@ class Attestation(Container):
                   }
                 }
               },
-              "AttestationData": {
+            "AttestationData": {
                 "type": "object",
                 "properties": {
                   "slot": {
@@ -188,14 +207,17 @@ class Attestation(Container):
                   }
                 }
               },
-              "Attestation": {
+            "Attestation": {
                 "type": "object",
                 "properties": {
                   "aggregation_bits": {
                     "$ref": "#/primitive/Bitlist"
                   },
                   "data": {
-                    "$ref": "#/phase0/AttestationData"
+                      "allOf": [
+                          {"$ref": "#/phase0/AttestationData"},
+                          {"description": "Some comment in the same line"}
+                      ]
                   },
                   "signature": {
                     "$ref": "#/phase0/BLSSignature"
