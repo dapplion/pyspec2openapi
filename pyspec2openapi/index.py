@@ -31,13 +31,22 @@ def parse_specs(config: Dict) -> Dict:
     # https://raw.githubusercontent.com/ethereum/consensus-specs/v1.4.0-beta.5/specs/phase0/beacon-chain.md
     for fork in sources:
         out[fork] = {}
+        config.setdefault('mutations', {})[fork] = []
+        config.setdefault('dependants', {})
+        config.setdefault('class_code', {})
+
         for source in sources[fork]:
             doc = fetch_text(f"{base_url}/{version}/specs/{fork}/{source}")
             print(f"Parsing {fork}/{source}", file=sys.stderr)
             parse_doc(doc, fork, config, out)
 
-        # Add impllicit block types
-        add_implicit_block_types(fork, config, out)
+        for mutated_class in config['mutations'][fork]:
+            for dependant_class in config['dependants'].get(mutated_class, set()):
+                if dependant_class not in out[fork]:
+                    print(f"Adding spec for {fork}.{dependant_class}", file=sys.stderr)
+                    parse_container_code_block(
+                        config['class_code'][dependant_class], fork, config, out
+                    )
 
         if config.get('generate_blinded_types', False):
             generate_blinded_types(fork, config, out)
@@ -53,25 +62,6 @@ def fetch_text(url):
     response = requests.get(url)
     response.raise_for_status()  # Raise an exception for HTTP errors
     return response.text
-
-
-def add_implicit_block_types(fork: str, config: Dict, out: Dict):
-    if 'BeaconBlock' not in out[fork]:
-        parse_container_code_block("""
-class BeaconBlock(Container):
-    slot: Slot
-    proposer_index: ValidatorIndex
-    parent_root: Root
-    state_root: Root
-    body: BeaconBlockBody
-        """, fork, config, out)
-
-    if 'SignedBeaconBlock' not in out[fork]:
-        parse_container_code_block("""
-class SignedBeaconBlock(Container):
-    message: BeaconBlock
-    signature: BLSSignature
-        """, fork, config, out)
 
 
 def generate_blinded_types(fork: str, config: Dict, out: Dict):
@@ -107,6 +97,45 @@ def parse_doc(doc: str, fork: str, config: Dict, out: Dict):
     parse_container_code_blocks(code_blocks, fork, config, out)
 
 
+def extract_custom_types_table(input: str) -> List[str]:
+    matches = re.findall(
+        r'## Custom types(.*?)\n[#]+ [^\n]+',
+        input, re.DOTALL
+    )
+    if matches:
+        return list(filter(
+            lambda line: line.startswith('| `'),
+            matches[0].strip().split('\n')
+        ))
+    else:
+        return []
+
+
+def parse_custom_type_row(row: str, fork: str, config: Dict, out: Dict):
+    # Attempts to match the format "| `Slot` | `uint64` | a slot number |"
+    pattern = r'\|\s*`([^`]+)`\s*\|\s*`([^`]+)`\s*\|\s*([^|]+)\s*\|'
+    match = re.search(pattern, row)
+    if match:
+        name, typename, comment = match.groups()
+        out[fork][name] = get_type_schema(
+            fork, typename, comment, config, out
+        )
+    else:
+        raise ValueError("Custom type row format unknown: " + row)
+
+
+def extract_container_code_blocks(input: str) -> List[str]:
+    matches = re.findall(r'## Containers(.*?)\n## [^\n]+', input, re.DOTALL)
+    if matches:
+        python_code_blocks = re.findall(
+            r'```python\n(.*?)\n```',
+            matches[0], re.DOTALL
+        )
+        return python_code_blocks
+    else:
+        return []
+
+
 def parse_container_code_blocks(
     code_blocks: List[str], fork: str, config: Dict, out: Dict
 ):
@@ -127,47 +156,14 @@ def parse_container_code_blocks(
             raise Exception("Unknwon types: ", ' '.join(unknown_types))
 
 
-def extract_custom_types_table(input: str) -> List[str]:
-    matches = re.findall(
-        r'## Custom types(.*?)\n[#]+ [^\n]+',
-        input, re.DOTALL
-    )
-    if matches:
-        return list(filter(
-            lambda line: line.startswith('| `'),
-            matches[0].strip().split('\n')
-        ))
-    else:
-        return []
-
-
-def extract_container_code_blocks(input: str) -> List[str]:
-    matches = re.findall(r'## Containers(.*?)\n## [^\n]+', input, re.DOTALL)
-    if matches:
-        python_code_blocks = re.findall(
-            r'```python\n(.*?)\n```',
-            matches[0], re.DOTALL
-        )
-        return python_code_blocks
-    else:
-        return []
-
-
-def parse_custom_type_row(row: str, fork: str, config: Dict, out: Dict):
-    # Attempts to match the format "| `Slot` | `uint64` | a slot number |"
-    pattern = r'\|\s*`([^`]+)`\s*\|\s*`([^`]+)`\s*\|\s*([^|]+)\s*\|'
-    match = re.search(pattern, row)
-    if match:
-        name, typename, comment = match.groups()
-        out[fork][name] = get_type_schema(
-            fork, typename, comment, config, out
-        )
-    else:
-        raise ValueError("Custom type row format unknown: " + row)
-
-
 def parse_container_code_block(code: str, fork: str, config: Dict, out: Dict):
-    class_name = re_first_match(r'^class (\w+)\(.*\):', code)
+    match = re.search(r'^class (\w+)\(.*\):', code, re.MULTILINE)
+    if match:
+        class_name = match.group(1)
+    else:
+        # Not a container declaration codeblock
+        return
+
     if class_name in config.get('ignore_classnames', {}):
         return
 
@@ -178,10 +174,15 @@ def parse_container_code_block(code: str, fork: str, config: Dict, out: Dict):
         properties[prop] = get_type_schema(
             fork, prop_type, comment, config, out
         )
+        config['dependants'].setdefault(prop_type, set()).add(class_name)
     out[fork][class_name] = {
         'type': 'object',
         'properties': properties,
     }
+    # Need to track dependencies. If ExecutionHeader changes for a fork, the
+    # dependant type BeaconState must be recreated for the that fork
+    config['mutations'][fork].append(class_name)
+    config['class_code'][class_name] = code
 
 
 def parse_typename(input: str, fork: str, out: Dict) -> Dict:
@@ -289,10 +290,4 @@ def bytes_type(byte_len: int) -> Dict:
         'example': f"0x{generate_hex_string(byte_len)}",
         'pattern': f"^0x[a-fA-F0-9]{{{byte_len * 2}}}$",
     }
-
-def re_first_match(regex: str, input: str) -> str:
-    match = re.search(regex, input, re.MULTILINE)
-    if match:
-        return match.group(1)
-    raise ValueError(f"No match with regex '{regex}' on input '{input}'")
 

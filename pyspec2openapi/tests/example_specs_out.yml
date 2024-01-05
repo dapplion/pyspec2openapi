@@ -1262,6 +1262,62 @@ capella:
         $ref: '#/phase0/Root'
       body:
         $ref: '#/capella/BeaconBlockBody'
+  LightClientFinalityUpdate:
+    type: object
+    properties:
+      attested_header:
+        $ref: '#/capella/LightClientHeader'
+      finalized_header:
+        $ref: '#/capella/LightClientHeader'
+      finality_branch:
+        type: array
+        items:
+          $ref: '#/primitive/Bytes32'
+      sync_aggregate:
+        $ref: '#/altair/SyncAggregate'
+      signature_slot:
+        $ref: '#/phase0/Slot'
+  LightClientBootstrap:
+    type: object
+    properties:
+      header:
+        $ref: '#/capella/LightClientHeader'
+      current_sync_committee:
+        $ref: '#/altair/SyncCommittee'
+      current_sync_committee_branch:
+        type: array
+        items:
+          $ref: '#/primitive/Bytes32'
+  LightClientOptimisticUpdate:
+    type: object
+    properties:
+      attested_header:
+        $ref: '#/capella/LightClientHeader'
+      sync_aggregate:
+        $ref: '#/altair/SyncAggregate'
+      signature_slot:
+        $ref: '#/phase0/Slot'
+  LightClientUpdate:
+    type: object
+    properties:
+      attested_header:
+        $ref: '#/capella/LightClientHeader'
+      next_sync_committee:
+        $ref: '#/altair/SyncCommittee'
+      next_sync_committee_branch:
+        type: array
+        items:
+          $ref: '#/primitive/Bytes32'
+      finalized_header:
+        $ref: '#/capella/LightClientHeader'
+      finality_branch:
+        type: array
+        items:
+          $ref: '#/primitive/Bytes32'
+      sync_aggregate:
+        $ref: '#/altair/SyncAggregate'
+      signature_slot:
+        $ref: '#/phase0/Slot'
   SignedBeaconBlock:
     type: object
     properties:
@@ -1494,6 +1550,34 @@ deneb:
         $ref: '#/primitive/uint64'
       excess_blob_gas:
         $ref: '#/primitive/uint64'
+  BlobSidecar:
+    type: object
+    properties:
+      index:
+        allOf:
+        - $ref: '#/deneb/BlobIndex'
+        - description: Index of blob in block
+      blob:
+        $ref: '#/deneb/Blob'
+      kzg_commitment:
+        $ref: '#/deneb/KZGCommitment'
+      kzg_proof:
+        allOf:
+        - $ref: '#/deneb/KZGProof'
+        - description: Allows for quick verification of kzg_commitment
+      signed_block_header:
+        $ref: '#/phase0/SignedBeaconBlockHeader'
+      kzg_commitment_inclusion_proof:
+        type: array
+        items:
+          $ref: '#/primitive/Bytes32'
+  BlobIdentifier:
+    type: object
+    properties:
+      block_root:
+        $ref: '#/phase0/Root'
+      index:
+        $ref: '#/deneb/BlobIndex'
   BeaconBlock:
     type: object
     properties:
@@ -1507,6 +1591,104 @@ deneb:
         $ref: '#/phase0/Root'
       body:
         $ref: '#/deneb/BeaconBlockBody'
+  LightClientHeader:
+    type: object
+    properties:
+      beacon:
+        $ref: '#/phase0/BeaconBlockHeader'
+      execution:
+        $ref: '#/deneb/ExecutionPayloadHeader'
+      execution_branch:
+        type: array
+        items:
+          $ref: '#/primitive/Bytes32'
+  BeaconState:
+    type: object
+    properties:
+      genesis_time:
+        $ref: '#/primitive/uint64'
+      genesis_validators_root:
+        $ref: '#/phase0/Root'
+      slot:
+        $ref: '#/phase0/Slot'
+      fork:
+        $ref: '#/phase0/Fork'
+      latest_block_header:
+        $ref: '#/phase0/BeaconBlockHeader'
+      block_roots:
+        type: array
+        items:
+          $ref: '#/phase0/Root'
+      state_roots:
+        type: array
+        items:
+          $ref: '#/phase0/Root'
+      historical_roots:
+        type: array
+        items:
+          $ref: '#/phase0/Root'
+        description: Frozen in Capella, replaced by historical_summaries
+      eth1_data:
+        $ref: '#/phase0/Eth1Data'
+      eth1_data_votes:
+        type: array
+        items:
+          $ref: '#/phase0/Eth1Data'
+      eth1_deposit_index:
+        $ref: '#/primitive/uint64'
+      validators:
+        type: array
+        items:
+          $ref: '#/phase0/Validator'
+      balances:
+        type: array
+        items:
+          $ref: '#/phase0/Gwei'
+      randao_mixes:
+        type: array
+        items:
+          $ref: '#/primitive/Bytes32'
+      slashings:
+        type: array
+        items:
+          $ref: '#/phase0/Gwei'
+        description: Per-epoch sums of slashed effective balances
+      previous_epoch_participation:
+        type: array
+        items:
+          $ref: '#/altair/ParticipationFlags'
+      current_epoch_participation:
+        type: array
+        items:
+          $ref: '#/altair/ParticipationFlags'
+      justification_bits:
+        allOf:
+        - $ref: '#/primitive/Bitlist'
+        - description: Bit set for every recent justified epoch
+      previous_justified_checkpoint:
+        $ref: '#/phase0/Checkpoint'
+      current_justified_checkpoint:
+        $ref: '#/phase0/Checkpoint'
+      finalized_checkpoint:
+        $ref: '#/phase0/Checkpoint'
+      inactivity_scores:
+        type: array
+        items:
+          $ref: '#/primitive/uint64'
+      current_sync_committee:
+        $ref: '#/altair/SyncCommittee'
+      next_sync_committee:
+        $ref: '#/altair/SyncCommittee'
+      latest_execution_payload_header:
+        $ref: '#/deneb/ExecutionPayloadHeader'
+      next_withdrawal_index:
+        $ref: '#/capella/WithdrawalIndex'
+      next_withdrawal_validator_index:
+        $ref: '#/phase0/ValidatorIndex'
+      historical_summaries:
+        type: array
+        items:
+          $ref: '#/capella/HistoricalSummary'
   SignedBeaconBlock:
     type: object
     properties:
@@ -1514,6 +1696,62 @@ deneb:
         $ref: '#/deneb/BeaconBlock'
       signature:
         $ref: '#/phase0/BLSSignature'
+  LightClientFinalityUpdate:
+    type: object
+    properties:
+      attested_header:
+        $ref: '#/deneb/LightClientHeader'
+      finalized_header:
+        $ref: '#/deneb/LightClientHeader'
+      finality_branch:
+        type: array
+        items:
+          $ref: '#/primitive/Bytes32'
+      sync_aggregate:
+        $ref: '#/altair/SyncAggregate'
+      signature_slot:
+        $ref: '#/phase0/Slot'
+  LightClientBootstrap:
+    type: object
+    properties:
+      header:
+        $ref: '#/deneb/LightClientHeader'
+      current_sync_committee:
+        $ref: '#/altair/SyncCommittee'
+      current_sync_committee_branch:
+        type: array
+        items:
+          $ref: '#/primitive/Bytes32'
+  LightClientOptimisticUpdate:
+    type: object
+    properties:
+      attested_header:
+        $ref: '#/deneb/LightClientHeader'
+      sync_aggregate:
+        $ref: '#/altair/SyncAggregate'
+      signature_slot:
+        $ref: '#/phase0/Slot'
+  LightClientUpdate:
+    type: object
+    properties:
+      attested_header:
+        $ref: '#/deneb/LightClientHeader'
+      next_sync_committee:
+        $ref: '#/altair/SyncCommittee'
+      next_sync_committee_branch:
+        type: array
+        items:
+          $ref: '#/primitive/Bytes32'
+      finalized_header:
+        $ref: '#/deneb/LightClientHeader'
+      finality_branch:
+        type: array
+        items:
+          $ref: '#/primitive/Bytes32'
+      sync_aggregate:
+        $ref: '#/altair/SyncAggregate'
+      signature_slot:
+        $ref: '#/phase0/Slot'
   BlindedBeaconBlockBody:
     type: object
     properties:
