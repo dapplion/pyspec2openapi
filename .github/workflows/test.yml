@@ -26,3 +26,15 @@ jobs:
     - name: Run pytest
       run: pytest -vv
 
+    - name: Generate specs output
+      run: python -m pyspec2openapi pyspec2openapi/tests/example_config.yml pyspec2openapi/tests/example_specs_out.yml
+    - name: Check specs out is unchanged
+      run: |
+        if [ -z "$(git status --porcelain)" ]; then 
+          echo "Working directory clean"
+        else 
+          echo "Uncommitted changes"
+          git --no-pager diff
+          exit 1
+        fi
+
