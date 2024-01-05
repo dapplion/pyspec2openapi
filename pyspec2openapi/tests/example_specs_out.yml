@@ -38,31 +38,57 @@ primitive:
     pattern: ^0x[a-fA-F0-9]{40}$
 phase0:
   Slot:
-    $ref: '#/primitive/uint64'
+    allOf:
+    - $ref: '#/primitive/uint64'
+    - description: a slot number
   Epoch:
-    $ref: '#/primitive/uint64'
+    allOf:
+    - $ref: '#/primitive/uint64'
+    - description: an epoch number
   CommitteeIndex:
-    $ref: '#/primitive/uint64'
+    allOf:
+    - $ref: '#/primitive/uint64'
+    - description: a committee index at a slot
   ValidatorIndex:
-    $ref: '#/primitive/uint64'
+    allOf:
+    - $ref: '#/primitive/uint64'
+    - description: a validator registry index
   Gwei:
-    $ref: '#/primitive/uint64'
+    allOf:
+    - $ref: '#/primitive/uint64'
+    - description: an amount in Gwei
   Root:
-    $ref: '#/primitive/Bytes32'
+    allOf:
+    - $ref: '#/primitive/Bytes32'
+    - description: a Merkle root
   Hash32:
-    $ref: '#/primitive/Bytes32'
+    allOf:
+    - $ref: '#/primitive/Bytes32'
+    - description: a 256-bit hash
   Version:
-    $ref: '#/primitive/Bytes4'
+    allOf:
+    - $ref: '#/primitive/Bytes4'
+    - description: a fork version number
   DomainType:
-    $ref: '#/primitive/Bytes4'
+    allOf:
+    - $ref: '#/primitive/Bytes4'
+    - description: a domain type
   ForkDigest:
-    $ref: '#/primitive/Bytes4'
+    allOf:
+    - $ref: '#/primitive/Bytes4'
+    - description: a digest of the current fork data
   Domain:
-    $ref: '#/primitive/Bytes32'
+    allOf:
+    - $ref: '#/primitive/Bytes32'
+    - description: a signature domain
   BLSPubkey:
-    $ref: '#/primitive/Bytes48'
+    allOf:
+    - $ref: '#/primitive/Bytes48'
+    - description: a BLS12-381 public key
   BLSSignature:
-    $ref: '#/primitive/Bytes96'
+    allOf:
+    - $ref: '#/primitive/Bytes96'
+    - description: a BLS12-381 signature
   Fork:
     type: object
     properties:
@@ -71,7 +97,9 @@ phase0:
       current_version:
         $ref: '#/phase0/Version'
       epoch:
-        $ref: '#/phase0/Epoch'
+        allOf:
+        - $ref: '#/phase0/Epoch'
+        - description: Epoch of latest fork
   ForkData:
     type: object
     properties:
@@ -92,19 +120,27 @@ phase0:
       pubkey:
         $ref: '#/phase0/BLSPubkey'
       withdrawal_credentials:
-        $ref: '#/primitive/Bytes32'
+        allOf:
+        - $ref: '#/primitive/Bytes32'
+        - description: Commitment to pubkey for withdrawals
       effective_balance:
-        $ref: '#/phase0/Gwei'
+        allOf:
+        - $ref: '#/phase0/Gwei'
+        - description: Balance at stake
       slashed:
         $ref: '#/primitive/boolean'
       activation_eligibility_epoch:
-        $ref: '#/phase0/Epoch'
+        allOf:
+        - $ref: '#/phase0/Epoch'
+        - description: When criteria for activation were met
       activation_epoch:
         $ref: '#/phase0/Epoch'
       exit_epoch:
         $ref: '#/phase0/Epoch'
       withdrawable_epoch:
-        $ref: '#/phase0/Epoch'
+        allOf:
+        - $ref: '#/phase0/Epoch'
+        - description: When validator can withdraw funds
   AttestationData:
     type: object
     properties:
@@ -179,7 +215,9 @@ phase0:
       amount:
         $ref: '#/phase0/Gwei'
       signature:
-        $ref: '#/phase0/BLSSignature'
+        allOf:
+        - $ref: '#/phase0/BLSSignature'
+        - description: Signing over DepositMessage
   BeaconBlockHeader:
     type: object
     properties:
@@ -223,13 +261,16 @@ phase0:
         type: array
         items:
           $ref: '#/primitive/Bytes32'
+        description: Merkle path to deposit root
       data:
         $ref: '#/phase0/DepositData'
   VoluntaryExit:
     type: object
     properties:
       epoch:
-        $ref: '#/phase0/Epoch'
+        allOf:
+        - $ref: '#/phase0/Epoch'
+        - description: Earliest epoch when voluntary exit can be processed
       validator_index:
         $ref: '#/phase0/ValidatorIndex'
   BeaconState:
@@ -281,6 +322,7 @@ phase0:
         type: array
         items:
           $ref: '#/phase0/Gwei'
+        description: Per-epoch sums of slashed effective balances
       previous_epoch_attestations:
         type: array
         items:
@@ -290,9 +332,13 @@ phase0:
         items:
           $ref: '#/phase0/PendingAttestation'
       justification_bits:
-        $ref: '#/primitive/Bitlist'
+        allOf:
+        - $ref: '#/primitive/Bitlist'
+        - description: Bit set for every recent justified epoch
       previous_justified_checkpoint:
-        $ref: '#/phase0/Checkpoint'
+        allOf:
+        - $ref: '#/phase0/Checkpoint'
+        - description: Previous epoch snapshot
       current_justified_checkpoint:
         $ref: '#/phase0/Checkpoint'
       finalized_checkpoint:
@@ -324,9 +370,13 @@ phase0:
       randao_reveal:
         $ref: '#/phase0/BLSSignature'
       eth1_data:
-        $ref: '#/phase0/Eth1Data'
+        allOf:
+        - $ref: '#/phase0/Eth1Data'
+        - description: Eth1 data vote
       graffiti:
-        $ref: '#/primitive/Bytes32'
+        allOf:
+        - $ref: '#/primitive/Bytes32'
+        - description: Arbitrary data
       proposer_slashings:
         type: array
         items:
@@ -394,7 +444,9 @@ phase0:
         $ref: '#/phase0/BLSSignature'
 altair:
   ParticipationFlags:
-    $ref: '#/primitive/uint8'
+    allOf:
+    - $ref: '#/primitive/uint8'
+    - description: a succinct representation of 8 boolean participation flags
   SyncAggregate:
     type: object
     properties:
@@ -417,9 +469,13 @@ altair:
       randao_reveal:
         $ref: '#/phase0/BLSSignature'
       eth1_data:
-        $ref: '#/phase0/Eth1Data'
+        allOf:
+        - $ref: '#/phase0/Eth1Data'
+        - description: Eth1 data vote
       graffiti:
-        $ref: '#/primitive/Bytes32'
+        allOf:
+        - $ref: '#/primitive/Bytes32'
+        - description: Arbitrary data
       proposer_slashings:
         type: array
         items:
@@ -491,6 +547,7 @@ altair:
         type: array
         items:
           $ref: '#/phase0/Gwei'
+        description: Per-epoch sums of slashed effective balances
       previous_epoch_participation:
         type: array
         items:
@@ -500,7 +557,9 @@ altair:
         items:
           $ref: '#/altair/ParticipationFlags'
       justification_bits:
-        $ref: '#/primitive/Bitlist'
+        allOf:
+        - $ref: '#/primitive/Bitlist'
+        - description: Bit set for every recent justified epoch
       previous_justified_checkpoint:
         $ref: '#/phase0/Checkpoint'
       current_justified_checkpoint:
@@ -564,16 +623,23 @@ altair:
         $ref: '#/primitive/uint64'
 bellatrix:
   Transaction:
-    $ref: '#/primitive/ByteList'
+    allOf:
+    - $ref: '#/primitive/ByteList'
+    - description: either a [typed transaction envelope](https://eips.ethereum.org/EIPS/eip-2718#opaque-byte-array-rather-than-an-rlp-array)
+        or a legacy transaction
   ExecutionAddress:
-    $ref: '#/primitive/Bytes20'
+    allOf:
+    - $ref: '#/primitive/Bytes20'
+    - description: Address of account on the execution layer
   ExecutionPayload:
     type: object
     properties:
       parent_hash:
         $ref: '#/phase0/Hash32'
       fee_recipient:
-        $ref: '#/bellatrix/ExecutionAddress'
+        allOf:
+        - $ref: '#/bellatrix/ExecutionAddress'
+        - description: '''beneficiary'' in the yellow paper'
       state_root:
         $ref: '#/primitive/Bytes32'
       receipts_root:
@@ -581,9 +647,13 @@ bellatrix:
       logs_bloom:
         $ref: '#/primitive/ByteVector'
       prev_randao:
-        $ref: '#/primitive/Bytes32'
+        allOf:
+        - $ref: '#/primitive/Bytes32'
+        - description: '''difficulty'' in the yellow paper'
       block_number:
-        $ref: '#/primitive/uint64'
+        allOf:
+        - $ref: '#/primitive/uint64'
+        - description: '''number'' in the yellow paper'
       gas_limit:
         $ref: '#/primitive/uint64'
       gas_used:
@@ -595,7 +665,9 @@ bellatrix:
       base_fee_per_gas:
         $ref: '#/primitive/uint256'
       block_hash:
-        $ref: '#/phase0/Hash32'
+        allOf:
+        - $ref: '#/phase0/Hash32'
+        - description: Hash of execution block
       transactions:
         type: array
         items:
@@ -628,7 +700,9 @@ bellatrix:
       base_fee_per_gas:
         $ref: '#/primitive/uint256'
       block_hash:
-        $ref: '#/phase0/Hash32'
+        allOf:
+        - $ref: '#/phase0/Hash32'
+        - description: Hash of execution block
       transactions_root:
         $ref: '#/phase0/Root'
   BeaconBlockBody:
@@ -637,9 +711,13 @@ bellatrix:
       randao_reveal:
         $ref: '#/phase0/BLSSignature'
       eth1_data:
-        $ref: '#/phase0/Eth1Data'
+        allOf:
+        - $ref: '#/phase0/Eth1Data'
+        - description: Eth1 data vote
       graffiti:
-        $ref: '#/primitive/Bytes32'
+        allOf:
+        - $ref: '#/primitive/Bytes32'
+        - description: Arbitrary data
       proposer_slashings:
         type: array
         items:
@@ -713,6 +791,7 @@ bellatrix:
         type: array
         items:
           $ref: '#/phase0/Gwei'
+        description: Per-epoch sums of slashed effective balances
       previous_epoch_participation:
         type: array
         items:
@@ -722,7 +801,9 @@ bellatrix:
         items:
           $ref: '#/altair/ParticipationFlags'
       justification_bits:
-        $ref: '#/primitive/Bitlist'
+        allOf:
+        - $ref: '#/primitive/Bitlist'
+        - description: Bit set for every recent justified epoch
       previous_justified_checkpoint:
         $ref: '#/phase0/Checkpoint'
       current_justified_checkpoint:
@@ -741,7 +822,9 @@ bellatrix:
         $ref: '#/bellatrix/ExecutionPayloadHeader'
 capella:
   WithdrawalIndex:
-    $ref: '#/primitive/uint64'
+    allOf:
+    - $ref: '#/primitive/uint64'
+    - description: an index of a `Withdrawal`
   Withdrawal:
     type: object
     properties:
@@ -782,7 +865,9 @@ capella:
       parent_hash:
         $ref: '#/phase0/Hash32'
       fee_recipient:
-        $ref: '#/bellatrix/ExecutionAddress'
+        allOf:
+        - $ref: '#/bellatrix/ExecutionAddress'
+        - description: '''beneficiary'' in the yellow paper'
       state_root:
         $ref: '#/primitive/Bytes32'
       receipts_root:
@@ -790,9 +875,13 @@ capella:
       logs_bloom:
         $ref: '#/primitive/ByteVector'
       prev_randao:
-        $ref: '#/primitive/Bytes32'
+        allOf:
+        - $ref: '#/primitive/Bytes32'
+        - description: '''difficulty'' in the yellow paper'
       block_number:
-        $ref: '#/primitive/uint64'
+        allOf:
+        - $ref: '#/primitive/uint64'
+        - description: '''number'' in the yellow paper'
       gas_limit:
         $ref: '#/primitive/uint64'
       gas_used:
@@ -804,7 +893,9 @@ capella:
       base_fee_per_gas:
         $ref: '#/primitive/uint256'
       block_hash:
-        $ref: '#/phase0/Hash32'
+        allOf:
+        - $ref: '#/phase0/Hash32'
+        - description: Hash of execution block
       transactions:
         type: array
         items:
@@ -841,7 +932,9 @@ capella:
       base_fee_per_gas:
         $ref: '#/primitive/uint256'
       block_hash:
-        $ref: '#/phase0/Hash32'
+        allOf:
+        - $ref: '#/phase0/Hash32'
+        - description: Hash of execution block
       transactions_root:
         $ref: '#/phase0/Root'
       withdrawals_root:
@@ -852,9 +945,13 @@ capella:
       randao_reveal:
         $ref: '#/phase0/BLSSignature'
       eth1_data:
-        $ref: '#/phase0/Eth1Data'
+        allOf:
+        - $ref: '#/phase0/Eth1Data'
+        - description: Eth1 data vote
       graffiti:
-        $ref: '#/primitive/Bytes32'
+        allOf:
+        - $ref: '#/primitive/Bytes32'
+        - description: Arbitrary data
       proposer_slashings:
         type: array
         items:
@@ -908,6 +1005,7 @@ capella:
         type: array
         items:
           $ref: '#/phase0/Root'
+        description: Frozen in Capella, replaced by historical_summaries
       eth1_data:
         $ref: '#/phase0/Eth1Data'
       eth1_data_votes:
@@ -932,6 +1030,7 @@ capella:
         type: array
         items:
           $ref: '#/phase0/Gwei'
+        description: Per-epoch sums of slashed effective balances
       previous_epoch_participation:
         type: array
         items:
@@ -941,7 +1040,9 @@ capella:
         items:
           $ref: '#/altair/ParticipationFlags'
       justification_bits:
-        $ref: '#/primitive/Bitlist'
+        allOf:
+        - $ref: '#/primitive/Bitlist'
+        - description: Bit set for every recent justified epoch
       previous_justified_checkpoint:
         $ref: '#/phase0/Checkpoint'
       current_justified_checkpoint:
@@ -972,17 +1073,27 @@ deneb:
   G2Point:
     $ref: '#/primitive/Bytes96'
   BLSFieldElement:
-    $ref: '#/primitive/uint256'
+    allOf:
+    - $ref: '#/primitive/uint256'
+    - description: 'Validation: `x < BLS_MODULUS`'
   KZGCommitment:
-    $ref: '#/primitive/Bytes48'
+    allOf:
+    - $ref: '#/primitive/Bytes48'
+    - description: 'Validation: Perform [BLS standard''s](https://datatracker.ietf.org/doc/html/draft-irtf-cfrg-bls-signature-04#section-2.5)
+        "KeyValidate" check but do allow the identity point'
   KZGProof:
-    $ref: '#/primitive/Bytes48'
+    allOf:
+    - $ref: '#/primitive/Bytes48'
+    - description: Same as for `KZGCommitment`
   Polynomial:
     type: array
     items:
       $ref: '#/deneb/BLSFieldElement'
+    description: A polynomial in evaluation form
   Blob:
-    $ref: '#/primitive/ByteVector'
+    allOf:
+    - $ref: '#/primitive/ByteVector'
+    - description: A basic data blob
   VersionedHash:
     $ref: '#/primitive/Bytes32'
   BlobIndex:
@@ -993,9 +1104,13 @@ deneb:
       randao_reveal:
         $ref: '#/phase0/BLSSignature'
       eth1_data:
-        $ref: '#/phase0/Eth1Data'
+        allOf:
+        - $ref: '#/phase0/Eth1Data'
+        - description: Eth1 data vote
       graffiti:
-        $ref: '#/primitive/Bytes32'
+        allOf:
+        - $ref: '#/primitive/Bytes32'
+        - description: Arbitrary data
       proposer_slashings:
         type: array
         items:
@@ -1034,7 +1149,9 @@ deneb:
       parent_hash:
         $ref: '#/phase0/Hash32'
       fee_recipient:
-        $ref: '#/bellatrix/ExecutionAddress'
+        allOf:
+        - $ref: '#/bellatrix/ExecutionAddress'
+        - description: '''beneficiary'' in the yellow paper'
       state_root:
         $ref: '#/primitive/Bytes32'
       receipts_root:
@@ -1042,9 +1159,13 @@ deneb:
       logs_bloom:
         $ref: '#/primitive/ByteVector'
       prev_randao:
-        $ref: '#/primitive/Bytes32'
+        allOf:
+        - $ref: '#/primitive/Bytes32'
+        - description: '''difficulty'' in the yellow paper'
       block_number:
-        $ref: '#/primitive/uint64'
+        allOf:
+        - $ref: '#/primitive/uint64'
+        - description: '''number'' in the yellow paper'
       gas_limit:
         $ref: '#/primitive/uint64'
       gas_used:
@@ -1056,7 +1177,9 @@ deneb:
       base_fee_per_gas:
         $ref: '#/primitive/uint256'
       block_hash:
-        $ref: '#/phase0/Hash32'
+        allOf:
+        - $ref: '#/phase0/Hash32'
+        - description: Hash of execution block
       transactions:
         type: array
         items:
@@ -1097,7 +1220,9 @@ deneb:
       base_fee_per_gas:
         $ref: '#/primitive/uint256'
       block_hash:
-        $ref: '#/phase0/Hash32'
+        allOf:
+        - $ref: '#/phase0/Hash32'
+        - description: Hash of execution block
       transactions_root:
         $ref: '#/phase0/Root'
       withdrawals_root:

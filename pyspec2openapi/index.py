@@ -1,6 +1,6 @@
 import re
 import requests
-from typing import Dict, List
+from typing import Dict, List, Tuple
 import itertools
 import sys
 
@@ -15,7 +15,10 @@ primitive_types = {
 }
 
 
-def parse_specs(version: str, sources: Dict) -> Dict:
+def parse_specs(config: Dict) -> Dict:
+    version = config['version']
+    sources = config['sources']
+
     out = {
         'primitive': primitive_types.copy()
     }
@@ -24,7 +27,7 @@ def parse_specs(version: str, sources: Dict) -> Dict:
         out[fork] = {}
         for source in sources[fork]:
             doc = fetch_text(f"{base_url}/{version}/specs/{fork}/{source}")
-            parse_doc(doc, fork, out)
+            parse_doc(doc, fork, config, out)
     return out
 
 
@@ -34,21 +37,23 @@ def fetch_text(url):
     return response.text
 
 
-def parse_doc(doc: str, fork: str, out: Dict):
+def parse_doc(doc: str, fork: str, config: Dict, out: Dict):
     for row in extract_custom_types_table(doc):
-        parse_custom_type_row(row, fork, out)
+        parse_custom_type_row(row, fork, config, out)
 
     code_blocks = extract_container_code_blocks(doc)
     # Poor man's dependency resolution strategy, by retry
-    parse_container_code_blocks(code_blocks, fork, out)
+    parse_container_code_blocks(code_blocks, fork, config, out)
 
 
-def parse_container_code_blocks(code_blocks: List[str], fork: str, out: Dict):
+def parse_container_code_blocks(
+    code_blocks: List[str], fork: str, config: Dict, out: Dict
+):
     unknown_code_blocks = []
     unknown_types = []
     for code in code_blocks:
         try:
-            parse_container_code_block(code, fork, out)
+            parse_container_code_block(code, fork, config, out)
         except UnknownType as e:
             unknown_types.append(str(e))
             unknown_code_blocks.append(code)
@@ -56,7 +61,7 @@ def parse_container_code_blocks(code_blocks: List[str], fork: str, out: Dict):
     if len(unknown_code_blocks) > 0:
         # Break out of the recursive loop if no type is resolved
         if len(unknown_code_blocks) < len(code_blocks):
-            parse_container_code_blocks(unknown_code_blocks, fork, out)
+            parse_container_code_blocks(unknown_code_blocks, fork, config, out)
         else:
             raise Exception("Unknwon types: ", ' '.join(unknown_types))
 
@@ -87,27 +92,31 @@ def extract_container_code_blocks(input: str) -> List[str]:
         return []
 
 
-def parse_custom_type_row(row: str, fork: str, out: Dict):
+def parse_custom_type_row(row: str, fork: str, config: Dict, out: Dict):
     # Attempts to match the format "| `Slot` | `uint64` | a slot number |"
     pattern = r'\|\s*`([^`]+)`\s*\|\s*`([^`]+)`\s*\|\s*([^|]+)\s*\|'
     match = re.search(pattern, row)
     if match:
         # Extract the matched groups
         name, typename, comment = match.groups()
-        out[fork][name] = parse_typename(typename, out)
+        out[fork][name] = get_type_schema(
+            fork, typename, comment, config, out
+        )
     else:
         raise ValueError("Custom type row format unknown: " + row)
 
 
-def parse_container_code_block(code: str, fork: str, out: Dict):
+def parse_container_code_block(code: str, fork: str, config: Dict, out: Dict):
     lines = code.strip().split('\n')
     class_name = extract_class_name(lines[0])
     properties = {}
     for line in lines[1:]:
         if not line.strip().startswith('#') and ':' in line:
             prop, prop_type = line.strip().split(':', 1)
-            prop_type = prop_type.strip().split('#', 1)[0].strip()
-            properties[prop] = parse_typename(prop_type.strip(), out)
+            prop_type, comment = split_trailing_comment(prop_type)
+            properties[prop] = get_type_schema(
+                fork, prop_type, comment, config, out
+            )
     out[fork][class_name] = {
         'type': 'object',
         'properties': properties,
@@ -169,6 +178,43 @@ def parse_typename(input: str, out: Dict) -> Dict:
 
     print(f"Type name not known: '{input}'", file=sys.stderr)
     raise UnknownType(f"Type name not known '{input}'")
+
+
+def get_type_schema(
+    fork: str, typename: str, comment: str, config: Dict, out: Dict,
+) -> Dict:
+    schema = parse_typename(typename, out)
+
+    # maybe add comment
+    comment = comment.strip()
+    if comment != "" and not should_exclude_comment(comment, config):
+        if '$ref' in schema:
+            # $ref syntax needs allOf to merge the referenced schema
+            schema = {
+                'allOf': [
+                    schema,
+                    {'description': comment}
+                ]
+            }
+        else:
+            schema['description'] = comment
+
+    return schema
+
+
+def should_exclude_comment(comment: str, config: Dict) -> bool:
+    for regex in config.get('exclude_comments', []):
+        if re.search(regex, comment):
+            return True
+    return False
+
+
+def split_trailing_comment(s: str) -> Tuple[str, str]:
+    parts = s.strip().split('#', 1)
+    if len(parts) > 1:
+        return parts[0].strip(), parts[1].strip()
+    else:
+        return parts[0].strip(), ""
 
 
 def extract_class_name(line):
