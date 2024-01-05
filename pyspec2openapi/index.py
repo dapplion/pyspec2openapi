@@ -1,4 +1,5 @@
 import re
+import copy
 import requests
 from deepmerge import always_merger  # type: ignore
 from typing import Dict, List, Tuple
@@ -13,6 +14,10 @@ primitive_types = {
     'uint8': {'type': 'integer', 'example': 1},
     'uint64': {'type': 'string', 'example': '1'},
     'uint256': {'type': 'string', 'example': '1'},
+    'Bitlist': {'type': 'string', 'format': 'hex'},
+    'Bitvector': {'type': 'string', 'format': 'hex'},
+    'ByteList': {'type': 'string', 'format': 'hex'},
+    'ByteVector': {'type': 'string', 'format': 'hex'},
 }
 
 
@@ -28,7 +33,14 @@ def parse_specs(config: Dict) -> Dict:
         out[fork] = {}
         for source in sources[fork]:
             doc = fetch_text(f"{base_url}/{version}/specs/{fork}/{source}")
+            print(f"Parsing {fork}/{source}", file=sys.stderr)
             parse_doc(doc, fork, config, out)
+
+        # Add impllicit block types
+        add_implicit_block_types(fork, config, out)
+
+        if config.get('generate_blinded_types', False):
+            generate_blinded_types(fork, config, out)
 
     if 'override_schema' in config:
         # result = always_merger.merge(base, next)
@@ -41,6 +53,49 @@ def fetch_text(url):
     response = requests.get(url)
     response.raise_for_status()  # Raise an exception for HTTP errors
     return response.text
+
+
+def add_implicit_block_types(fork: str, config: Dict, out: Dict):
+    if 'BeaconBlock' not in out[fork]:
+        parse_container_code_block("""
+class BeaconBlock(Container):
+    slot: Slot
+    proposer_index: ValidatorIndex
+    parent_root: Root
+    state_root: Root
+    body: BeaconBlockBody
+        """, fork, config, out)
+
+    if 'SignedBeaconBlock' not in out[fork]:
+        parse_container_code_block("""
+class SignedBeaconBlock(Container):
+    message: BeaconBlock
+    signature: BLSSignature
+        """, fork, config, out)
+
+
+def generate_blinded_types(fork: str, config: Dict, out: Dict):
+    # Only apply to forks that have BeaconBlockBody and execution_payload
+    if 'execution_payload' not in out[fork].get('BeaconBlockBody', {}).get('properties', {}):  # noqa: E501
+        return
+
+    blinded_beacon_block_body = copy.deepcopy(out[fork]['BeaconBlockBody'])
+    blinded_beacon_block = copy.deepcopy(out[fork]['BeaconBlock'])
+    signed_blinded_beacon_block = copy.deepcopy(out[fork]['SignedBeaconBlock'])
+
+    del blinded_beacon_block_body['properties']['execution_payload']
+    blinded_beacon_block_body['properties']['execution_payload_header'] = \
+        get_type_schema(fork, "ExecutionPayloadHeader", "", config, out)
+
+    out[fork]['BlindedBeaconBlockBody'] = blinded_beacon_block_body
+    blinded_beacon_block['properties']['body'] = \
+        get_type_schema(fork, "BlindedBeaconBlockBody", "", config, out)
+
+    out[fork]['BlindedBeaconBlock'] = blinded_beacon_block
+    signed_blinded_beacon_block['properties']['message'] = \
+        get_type_schema(fork, "BlindedBeaconBlock", "", config, out)
+
+    out[fork]['SignedBlindedBeaconBlock'] = signed_blinded_beacon_block
 
 
 def parse_doc(doc: str, fork: str, config: Dict, out: Dict):
@@ -103,7 +158,6 @@ def parse_custom_type_row(row: str, fork: str, config: Dict, out: Dict):
     pattern = r'\|\s*`([^`]+)`\s*\|\s*`([^`]+)`\s*\|\s*([^|]+)\s*\|'
     match = re.search(pattern, row)
     if match:
-        # Extract the matched groups
         name, typename, comment = match.groups()
         out[fork][name] = get_type_schema(
             fork, typename, comment, config, out
@@ -113,55 +167,48 @@ def parse_custom_type_row(row: str, fork: str, config: Dict, out: Dict):
 
 
 def parse_container_code_block(code: str, fork: str, config: Dict, out: Dict):
-    lines = code.strip().split('\n')
-    class_name = extract_class_name(lines[0])
+    class_name = re_first_match(r'^class (\w+)\(.*\):', code)
+    if class_name in config.get('ignore_classnames', {}):
+        return
+
     properties = {}
-    for line in lines[1:]:
-        if not line.strip().startswith('#') and ':' in line:
-            prop, prop_type = line.strip().split(':', 1)
-            prop_type, comment = split_trailing_comment(prop_type)
-            properties[prop] = get_type_schema(
-                fork, prop_type, comment, config, out
-            )
+    for line in re.findall(r"^\s+\w+.*:\s\w+.*$", code, re.MULTILINE):
+        prop, prop_type = line.strip().split(':', 1)
+        prop_type, comment = split_trailing_comment(prop_type)
+        properties[prop] = get_type_schema(
+            fork, prop_type, comment, config, out
+        )
     out[fork][class_name] = {
         'type': 'object',
         'properties': properties,
     }
 
 
-def parse_typename(input: str, out: Dict) -> Dict:
+def parse_typename(input: str, fork: str, out: Dict) -> Dict:
     if input.startswith('Bitlist'):
-        return {
-          '$ref': '#/primitive/Bitlist'
-        }
+        return {'$ref': '#/primitive/Bitlist'}
 
     if input.startswith('Bitvector'):
-        return {
-          '$ref': '#/primitive/Bitlist'
-        }
+        return {'$ref': '#/primitive/Bitlist'}
 
     if input.startswith('ByteList'):
-        return {
-          '$ref': '#/primitive/ByteList'
-        }
+        return {'$ref': '#/primitive/ByteList'}
 
     if input.startswith('ByteVector'):
-        return {
-          '$ref': '#/primitive/ByteVector'
-        }
+        return {'$ref': '#/primitive/ByteVector'}
 
     match = re.search(r'List\[(\w+),', input)
     if match:
         return {
             'type': 'array',
-            'items': parse_typename(match.group(1), out)
+            'items': parse_typename(match.group(1), fork, out)
         }
 
     match = re.search(r'Vector\[(\w+),', input)
     if match:
         return {
             'type': 'array',
-            'items': parse_typename(match.group(1), out)
+            'items': parse_typename(match.group(1), fork, out)
         }
 
     # Auto-generate Bytes type, but only once
@@ -170,26 +217,22 @@ def parse_typename(input: str, out: Dict) -> Dict:
         if input not in out['primitive']:
             byte_len = int(match.group(1))
             out['primitive'][input] = bytes_type(byte_len)
-        return {
-            '$ref': f"#/primitive/{input}",
-        }
+        return {'$ref': f"#/primitive/{input}"}
 
     forks = list(out.keys())
     forks.reverse()
-    for fork in forks:
-        if input in out[fork]:
-            return {
-                '$ref': f"#/{fork}/{input}"
-            }
+    for fork_r in forks:
+        if input in out[fork_r]:
+            return {'$ref': f"#/{fork_r}/{input}"}
 
-    print(f"Type name not known: '{input}'", file=sys.stderr)
-    raise UnknownType(f"Type name not known '{input}'")
+    print(f"Type name not known {fork}: '{input}'", file=sys.stderr)
+    raise UnknownType(f"Type name not known {fork} '{input}'")
 
 
 def get_type_schema(
     fork: str, typename: str, comment: str, config: Dict, out: Dict,
 ) -> Dict:
-    schema = parse_typename(typename, out)
+    schema = parse_typename(typename, fork, out)
 
     # maybe add comment
     comment = comment.strip()
@@ -223,18 +266,6 @@ def split_trailing_comment(s: str) -> Tuple[str, str]:
         return parts[0].strip(), ""
 
 
-def extract_class_name(line):
-    pattern = r'class (\w+)\(.*\):'
-    match = re.match(pattern, line.strip())
-
-    if match:
-        # Extract the class name
-        return match.group(1)
-    else:
-        # Raise an error if the format is unexpected
-        raise ValueError("Format of the line is unexpected: " + line)
-
-
 class UnknownType(Exception):
     def __init__(self, message):
         self.message = message
@@ -258,3 +289,10 @@ def bytes_type(byte_len: int) -> Dict:
         'example': f"0x{generate_hex_string(byte_len)}",
         'pattern': f"^0x[a-fA-F0-9]{{{byte_len * 2}}}$",
     }
+
+def re_first_match(regex: str, input: str) -> str:
+    match = re.search(regex, input, re.MULTILINE)
+    if match:
+        return match.group(1)
+    raise ValueError(f"No match with regex '{regex}' on input '{input}'")
+

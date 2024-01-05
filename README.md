@@ -4,7 +4,7 @@ Tool to convert the types defined in the Ethereum python specs https://github.co
 
 ## Usage
 
-Install from P
+Install from PyPI
 
 ```
 pip install pyspec2openapi

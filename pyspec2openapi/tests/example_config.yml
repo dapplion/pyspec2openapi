@@ -1,10 +1,13 @@
 version: v1.4.0-beta.5
 sources:
   phase0: [beacon-chain.md, validator.md]
-  altair: [beacon-chain.md, validator.md]
+  altair: [beacon-chain.md, validator.md, light-client/sync-protocol.md]
   bellatrix: [beacon-chain.md, validator.md]
-  capella: [beacon-chain.md, validator.md]
-  deneb: [polynomial-commitments.md, beacon-chain.md, validator.md]
+  capella: [beacon-chain.md, validator.md, light-client/sync-protocol.md]
+  deneb: [polynomial-commitments.md, beacon-chain.md, validator.md, light-client/sync-protocol.md]
+generate_blinded_types: true
+ignore_classnames:
+  - LightClientStore
 exclude_comments:
   - '\[New [^\]]*\]'
   - '\[Modified [^\]]*\]'
