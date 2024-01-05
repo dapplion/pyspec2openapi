@@ -1,5 +1,6 @@
 import re
 import requests
+from deepmerge import always_merger  # type: ignore
 from typing import Dict, List, Tuple
 import itertools
 import sys
@@ -28,6 +29,11 @@ def parse_specs(config: Dict) -> Dict:
         for source in sources[fork]:
             doc = fetch_text(f"{base_url}/{version}/specs/{fork}/{source}")
             parse_doc(doc, fork, config, out)
+
+    if 'override_schema' in config:
+        # result = always_merger.merge(base, next)
+        out = always_merger.merge(out, config['override_schema'])
+
     return out
 
 
