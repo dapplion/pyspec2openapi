@@ -1,4 +1,5 @@
 import re
+import os
 import copy
 import requests
 from deepmerge import always_merger  # type: ignore
@@ -21,7 +22,7 @@ primitive_types = {
 }
 
 
-def parse_specs(config: Dict) -> Dict:
+def parse_specs(config: Dict, config_dir: str) -> Dict:
     sources = config['sources']
 
     out = {
@@ -35,7 +36,7 @@ def parse_specs(config: Dict) -> Dict:
         config.setdefault('class_code', {})
 
         for source in sources[fork]:
-            doc = fetch_source(source, fork, config)
+            doc = fetch_source(source, fork, config, config_dir)
             parse_doc(doc, fork, config, out)
 
         for mutated_class in config['mutations'][fork]:
@@ -56,7 +57,7 @@ def parse_specs(config: Dict) -> Dict:
     return out
 
 
-def fetch_source(source: Dict, fork: str, config: Dict) -> str:
+def fetch_source(source: Dict, fork: str, config: Dict, config_dir: str) -> str:
     spec_filename = source.get('spec')
     if spec_filename is not None:
         version = config['version']
@@ -66,10 +67,12 @@ def fetch_source(source: Dict, fork: str, config: Dict) -> str:
         response.raise_for_status()  # Raise an exception for HTTP errors
         return response.text
     
-    local_filepath = source.get('file')
-    if local_filepath is not None:
-        print(f"reading {local_filepath}")
-        with open(local_filepath, 'r') as file:
+    filepath = source.get('file')
+    if filepath is not None:
+        if not os.path.isabs(filepath):
+            filepath = os.path.join(config_dir, filepath)
+        print(f"reading {filepath}")
+        with open(filepath, 'r') as file:
             return file.read()
 
     raise Exception("sources item must declare 'spec' or 'file'")
@@ -182,6 +185,7 @@ def parse_container_code_block(code: str, fork: str, config: Dict, out: Dict):
             fork, prop_type, comment, config, out
         )
         config['dependants'].setdefault(prop_type, set()).add(class_name)
+    print(fork, class_name)
     out[fork][class_name] = {
         'type': 'object',
         'properties': properties,

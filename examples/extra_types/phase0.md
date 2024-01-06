@@ -14,6 +14,13 @@ class BeaconCommitteeSelection(Container):
 ### API specific types
 
 ```python
+class Genesis(Container):
+    genesis_time: uint64  # The genesis_time configured for the beacon node, which is the unix time in seconds at which the Eth2.0 chain began.
+    genesis_validators_root: Root
+    genesis_fork_version: Version
+```
+
+```python
 class DepositSnapshotResponse(Container):
     finalized: Vector[Root, 3]
     deposit_root: Root

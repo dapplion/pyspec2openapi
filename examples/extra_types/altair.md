@@ -1,5 +1,11 @@
 # Beacon APIs extra types
 
+## Custom types
+
+| Name | SSZ equivalent | Description |
+| - | - | - |
+| `ValidatorsByIndex` | `List[ValidatorIndex, 512]` | |
+
 ## Containers
 
 ### Selection
@@ -38,3 +44,8 @@ class SyncCommitteeSubscription(Container):
     until_epoch: Epoch  # The final epoch (exclusive value) that the specified validator requires the subscription for
 ```
 
+```python
+class IndexedSyncCommittee(Container):
+    validators: ValidatorsByIndex  # all of the validator indices in the current sync committee
+    validator_aggregates: List[ValidatorsByIndex, 4]  # Subcommittee slices of the current sync committee
+```

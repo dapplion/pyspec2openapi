@@ -3,16 +3,16 @@ sources:
   phase0:
     - {spec: beacon-chain.md}
     - {spec: validator.md}
-    - {file: examples/extra_types/phase0.md}
+    - {file: extra_types/phase0.md}
   altair:
     - {spec: beacon-chain.md}
     - {spec: validator.md}
     - {spec: light-client/sync-protocol.md}
-    - {file: examples/extra_types/altair.md}
+    - {file: extra_types/altair.md}
   bellatrix:
     - {spec: beacon-chain.md}
     - {spec: validator.md}
-    - {file: examples/extra_types/bellatrix.md}
+    - {file: extra_types/bellatrix.md}
   capella:
     - {spec: beacon-chain.md}
     - {spec: validator.md}
@@ -23,7 +23,7 @@ sources:
     - {spec: validator.md}
     - {spec: p2p-interface.md}
     - {spec: light-client/sync-protocol.md}
-    - {file: examples/extra_types/deneb.md}
+    - {file: extra_types/deneb.md}
 generate_blinded_types: [bellatrix, capella, deneb]
 ignore_classnames:
   - LightClientStore

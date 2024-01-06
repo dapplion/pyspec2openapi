@@ -471,6 +471,18 @@ phase0:
         $ref: '#/phase0/Slot'
       selection_proof:
         $ref: '#/phase0/BLSSignature'
+  Genesis:
+    type: object
+    properties:
+      genesis_time:
+        allOf:
+        - $ref: '#/primitive/uint64'
+        - description: The genesis_time configured for the beacon node, which is the
+            unix time in seconds at which the Eth2.0 chain began.
+      genesis_validators_root:
+        $ref: '#/phase0/Root'
+      genesis_fork_version:
+        $ref: '#/phase0/Version'
   DepositSnapshotResponse:
     type: object
     properties:
@@ -777,6 +789,10 @@ altair:
         $ref: '#/altair/SyncAggregate'
       signature_slot:
         $ref: '#/phase0/Slot'
+  ValidatorsByIndex:
+    type: array
+    items:
+      $ref: '#/phase0/ValidatorIndex'
   SyncCommitteeSelection:
     type: object
     properties:
@@ -832,6 +848,18 @@ altair:
         - $ref: '#/phase0/Epoch'
         - description: The final epoch (exclusive value) that the specified validator
             requires the subscription for
+  IndexedSyncCommittee:
+    type: object
+    properties:
+      validators:
+        allOf:
+        - $ref: '#/altair/ValidatorsByIndex'
+        - description: all of the validator indices in the current sync committee
+      validator_aggregates:
+        type: array
+        items:
+          $ref: '#/altair/ValidatorsByIndex'
+        description: Subcommittee slices of the current sync committee
   BeaconBlock:
     type: object
     properties:
@@ -1425,17 +1453,32 @@ capella:
         $ref: '#/phase0/Root'
       body:
         $ref: '#/capella/BeaconBlockBody'
-  LightClientFinalityUpdate:
+  LightClientUpdate:
     type: object
     properties:
       attested_header:
         $ref: '#/capella/LightClientHeader'
+      next_sync_committee:
+        $ref: '#/altair/SyncCommittee'
+      next_sync_committee_branch:
+        type: array
+        items:
+          $ref: '#/primitive/Bytes32'
       finalized_header:
         $ref: '#/capella/LightClientHeader'
       finality_branch:
         type: array
         items:
           $ref: '#/primitive/Bytes32'
+      sync_aggregate:
+        $ref: '#/altair/SyncAggregate'
+      signature_slot:
+        $ref: '#/phase0/Slot'
+  LightClientOptimisticUpdate:
+    type: object
+    properties:
+      attested_header:
+        $ref: '#/capella/LightClientHeader'
       sync_aggregate:
         $ref: '#/altair/SyncAggregate'
       signature_slot:
@@ -1451,26 +1494,11 @@ capella:
         type: array
         items:
           $ref: '#/primitive/Bytes32'
-  LightClientOptimisticUpdate:
+  LightClientFinalityUpdate:
     type: object
     properties:
       attested_header:
         $ref: '#/capella/LightClientHeader'
-      sync_aggregate:
-        $ref: '#/altair/SyncAggregate'
-      signature_slot:
-        $ref: '#/phase0/Slot'
-  LightClientUpdate:
-    type: object
-    properties:
-      attested_header:
-        $ref: '#/capella/LightClientHeader'
-      next_sync_committee:
-        $ref: '#/altair/SyncCommittee'
-      next_sync_committee_branch:
-        type: array
-        items:
-          $ref: '#/primitive/Bytes32'
       finalized_header:
         $ref: '#/capella/LightClientHeader'
       finality_branch:
@@ -1784,17 +1812,6 @@ deneb:
         $ref: '#/phase0/Root'
       body:
         $ref: '#/deneb/BeaconBlockBody'
-  LightClientHeader:
-    type: object
-    properties:
-      beacon:
-        $ref: '#/phase0/BeaconBlockHeader'
-      execution:
-        $ref: '#/deneb/ExecutionPayloadHeader'
-      execution_branch:
-        type: array
-        items:
-          $ref: '#/primitive/Bytes32'
   BeaconState:
     type: object
     properties:
@@ -1882,6 +1899,17 @@ deneb:
         type: array
         items:
           $ref: '#/capella/HistoricalSummary'
+  LightClientHeader:
+    type: object
+    properties:
+      beacon:
+        $ref: '#/phase0/BeaconBlockHeader'
+      execution:
+        $ref: '#/deneb/ExecutionPayloadHeader'
+      execution_branch:
+        type: array
+        items:
+          $ref: '#/primitive/Bytes32'
   SignedBeaconBlock:
     type: object
     properties:
@@ -1889,17 +1917,32 @@ deneb:
         $ref: '#/deneb/BeaconBlock'
       signature:
         $ref: '#/phase0/BLSSignature'
-  LightClientFinalityUpdate:
+  LightClientUpdate:
     type: object
     properties:
       attested_header:
         $ref: '#/deneb/LightClientHeader'
+      next_sync_committee:
+        $ref: '#/altair/SyncCommittee'
+      next_sync_committee_branch:
+        type: array
+        items:
+          $ref: '#/primitive/Bytes32'
       finalized_header:
         $ref: '#/deneb/LightClientHeader'
       finality_branch:
         type: array
         items:
           $ref: '#/primitive/Bytes32'
+      sync_aggregate:
+        $ref: '#/altair/SyncAggregate'
+      signature_slot:
+        $ref: '#/phase0/Slot'
+  LightClientOptimisticUpdate:
+    type: object
+    properties:
+      attested_header:
+        $ref: '#/deneb/LightClientHeader'
       sync_aggregate:
         $ref: '#/altair/SyncAggregate'
       signature_slot:
@@ -1915,26 +1958,11 @@ deneb:
         type: array
         items:
           $ref: '#/primitive/Bytes32'
-  LightClientOptimisticUpdate:
+  LightClientFinalityUpdate:
     type: object
     properties:
       attested_header:
         $ref: '#/deneb/LightClientHeader'
-      sync_aggregate:
-        $ref: '#/altair/SyncAggregate'
-      signature_slot:
-        $ref: '#/phase0/Slot'
-  LightClientUpdate:
-    type: object
-    properties:
-      attested_header:
-        $ref: '#/deneb/LightClientHeader'
-      next_sync_committee:
-        $ref: '#/altair/SyncCommittee'
-      next_sync_committee_branch:
-        type: array
-        items:
-          $ref: '#/primitive/Bytes32'
       finalized_header:
         $ref: '#/deneb/LightClientHeader'
       finality_branch:
