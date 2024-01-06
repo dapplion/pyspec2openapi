@@ -7,22 +7,21 @@ import itertools
 import sys
 
 
-base_url = 'https://raw.githubusercontent.com/ethereum/consensus-specs'
+spec_base_url = 'https://raw.githubusercontent.com/ethereum/consensus-specs'
 
 primitive_types = {
     'boolean': {'type': 'boolean', 'example': False},
     'uint8': {'type': 'integer', 'example': 1},
     'uint64': {'type': 'string', 'example': '1'},
     'uint256': {'type': 'string', 'example': '1'},
-    'Bitlist': {'type': 'string', 'format': 'hex'},
-    'Bitvector': {'type': 'string', 'format': 'hex'},
-    'ByteList': {'type': 'string', 'format': 'hex'},
-    'ByteVector': {'type': 'string', 'format': 'hex'},
+    'Bitlist': {'type': 'string', 'format': 'hex', 'example': '0x01', 'pattern': '^0x[a-fA-F0-9]+$'},
+    'Bitvector': {'type': 'string', 'format': 'hex', 'example': '0x01', 'pattern': '^0x[a-fA-F0-9]+$'},
+    'ByteList': {'type': 'string', 'format': 'hex', 'example': '0x01', 'pattern': '^0x[a-fA-F0-9]+$'},
+    'ByteVector': {'type': 'string', 'format': 'hex', 'example': '0x01', 'pattern': '^0x[a-fA-F0-9]+$'},
 }
 
 
 def parse_specs(config: Dict) -> Dict:
-    version = config['version']
     sources = config['sources']
 
     out = {
@@ -36,8 +35,7 @@ def parse_specs(config: Dict) -> Dict:
         config.setdefault('class_code', {})
 
         for source in sources[fork]:
-            doc = fetch_text(f"{base_url}/{version}/specs/{fork}/{source}")
-            print(f"Parsing {fork}/{source}", file=sys.stderr)
+            doc = fetch_source(source, fork, config)
             parse_doc(doc, fork, config, out)
 
         for mutated_class in config['mutations'][fork]:
@@ -48,7 +46,7 @@ def parse_specs(config: Dict) -> Dict:
                         config['class_code'][dependant_class], fork, config, out
                     )
 
-        if config.get('generate_blinded_types', False):
+        if fork in config.get('generate_blinded_types', []):
             generate_blinded_types(fork, config, out)
 
     if 'override_schema' in config:
@@ -58,17 +56,26 @@ def parse_specs(config: Dict) -> Dict:
     return out
 
 
-def fetch_text(url):
-    response = requests.get(url)
-    response.raise_for_status()  # Raise an exception for HTTP errors
-    return response.text
+def fetch_source(source: Dict, fork: str, config: Dict) -> str:
+    spec_filename = source.get('spec')
+    if spec_filename is not None:
+        version = config['version']
+        url = f"{spec_base_url}/{version}/specs/{fork}/{spec_filename}"
+        print(f"fetching {url}", file=sys.stderr)
+        response = requests.get(url)
+        response.raise_for_status()  # Raise an exception for HTTP errors
+        return response.text
+    
+    local_filepath = source.get('file')
+    if local_filepath is not None:
+        print(f"reading {local_filepath}")
+        with open(local_filepath, 'r') as file:
+            return file.read()
+
+    raise Exception("sources item must declare 'spec' or 'file'")
 
 
 def generate_blinded_types(fork: str, config: Dict, out: Dict):
-    # Only apply to forks that have BeaconBlockBody and execution_payload
-    if 'execution_payload' not in out[fork].get('BeaconBlockBody', {}).get('properties', {}):  # noqa: E501
-        return
-
     blinded_beacon_block_body = copy.deepcopy(out[fork]['BeaconBlockBody'])
     blinded_beacon_block = copy.deepcopy(out[fork]['BeaconBlock'])
     signed_blinded_beacon_block = copy.deepcopy(out[fork]['SignedBeaconBlock'])
@@ -125,7 +132,7 @@ def parse_custom_type_row(row: str, fork: str, config: Dict, out: Dict):
 
 
 def extract_container_code_blocks(input: str) -> List[str]:
-    matches = re.findall(r'## Containers(.*?)\n## [^\n]+', input, re.DOTALL)
+    matches = re.findall(r'## Containers(.*?)(?:\n## [^\n]+|$)', input, re.DOTALL)
     if matches:
         python_code_blocks = re.findall(
             r'```python\n(.*?)\n```',

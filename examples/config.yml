@@ -1,0 +1,31 @@
+version: v1.4.0-beta.5
+sources:
+  phase0:
+    - {spec: beacon-chain.md}
+    - {spec: validator.md}
+    - {file: examples/extra_types/phase0.md}
+  altair:
+    - {spec: beacon-chain.md}
+    - {spec: validator.md}
+    - {spec: light-client/sync-protocol.md}
+  bellatrix:
+    - {spec: beacon-chain.md}
+    - {spec: validator.md}
+  capella:
+    - {spec: beacon-chain.md}
+    - {spec: validator.md}
+    - {spec: light-client/sync-protocol.md}
+  deneb:
+    - {spec: polynomial-commitments.md}
+    - {spec: beacon-chain.md}
+    - {spec: validator.md}
+    - {spec: p2p-interface.md}
+    - {spec: light-client/sync-protocol.md}
+    - {file: examples/extra_types/deneb.md}
+generate_blinded_types: [bellatrix, capella, deneb]
+ignore_classnames:
+  - LightClientStore
+exclude_comments:
+  - '\[New [^\]]*\]'
+  - '\[Modified [^\]]*\]'
+

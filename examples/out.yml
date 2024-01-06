@@ -14,15 +14,23 @@ primitive:
   Bitlist:
     type: string
     format: hex
+    example: '0x01'
+    pattern: ^0x[a-fA-F0-9]+$
   Bitvector:
     type: string
     format: hex
+    example: '0x01'
+    pattern: ^0x[a-fA-F0-9]+$
   ByteList:
     type: string
     format: hex
+    example: '0x01'
+    pattern: ^0x[a-fA-F0-9]+$
   ByteVector:
     type: string
     format: hex
+    example: '0x01'
+    pattern: ^0x[a-fA-F0-9]+$
   Bytes32:
     type: string
     format: hex
@@ -355,7 +363,6 @@ phase0:
         $ref: '#/phase0/Checkpoint'
       finalized_checkpoint:
         $ref: '#/phase0/Checkpoint'
-    description: phase0 Beacon state
   SignedVoluntaryExit:
     type: object
     properties:
@@ -447,7 +454,7 @@ phase0:
       aggregate:
         $ref: '#/phase0/Attestation'
       selection_proof:
-        $ref: '#/phase0/BLSSignature'
+        $ref: '#/primitive/Bytes96'
   SignedAggregateAndProof:
     type: object
     properties:
@@ -455,6 +462,136 @@ phase0:
         $ref: '#/phase0/AggregateAndProof'
       signature:
         $ref: '#/phase0/BLSSignature'
+  BeaconCommitteeSelection:
+    type: object
+    properties:
+      validator_index:
+        $ref: '#/phase0/ValidatorIndex'
+      slot:
+        $ref: '#/phase0/Slot'
+      selection_proof:
+        $ref: '#/phase0/BLSSignature'
+  SyncCommitteeSelection:
+    type: object
+    properties:
+      validator_index:
+        $ref: '#/phase0/ValidatorIndex'
+      slot:
+        allOf:
+        - $ref: '#/phase0/Slot'
+        - description: The slot at which validator is assigned to produce a sync committee
+            contribution
+      subcommittee_index:
+        allOf:
+        - $ref: '#/primitive/uint64'
+        - description: SubcommitteeIndex to which the validator is assigned
+      selection_proof:
+        allOf:
+        - $ref: '#/phase0/BLSSignature'
+        - description: The `slot_signature` calculated by the validator for the upcoming
+            sync committee slot
+  DepositSnapshotResponse:
+    type: object
+    properties:
+      finalized:
+        type: array
+        items:
+          $ref: '#/phase0/Root'
+      deposit_root:
+        $ref: '#/phase0/Root'
+      deposit_count:
+        $ref: '#/primitive/uint64'
+      execution_block_hash:
+        $ref: '#/phase0/Root'
+      execution_block_height:
+        $ref: '#/primitive/uint64'
+  Committee:
+    type: object
+    properties:
+      index:
+        $ref: '#/phase0/CommitteeIndex'
+      slot:
+        $ref: '#/phase0/Slot'
+      validators:
+        type: array
+        items:
+          $ref: '#/phase0/ValidatorIndex'
+        description: List of validator indices assigned to this committee
+  AttesterDuty:
+    type: object
+    properties:
+      pubkey:
+        $ref: '#/phase0/BLSPubkey'
+      validator_index:
+        $ref: '#/phase0/ValidatorIndex'
+      committee_index:
+        $ref: '#/phase0/CommitteeIndex'
+      committee_length:
+        $ref: '#/primitive/uint64'
+      committees_at_slot:
+        $ref: '#/primitive/uint64'
+      validator_committee_index:
+        allOf:
+        - $ref: '#/primitive/uint64'
+        - description: Index of validator in committee
+      slot:
+        allOf:
+        - $ref: '#/phase0/Slot'
+        - description: The slot at which the validator must attest
+  ProposerDuty:
+    type: object
+    properties:
+      pubkey:
+        $ref: '#/phase0/BLSPubkey'
+      validator_index:
+        $ref: '#/phase0/ValidatorIndex'
+      slot:
+        allOf:
+        - $ref: '#/phase0/Slot'
+        - description: The slot at which the validator must propose block
+  SyncDuty:
+    type: object
+    properties:
+      pubkey:
+        $ref: '#/primitive/Bytes48'
+      validator_index:
+        $ref: '#/phase0/ValidatorIndex'
+      validator_sync_committee_indices:
+        type: array
+        items:
+          $ref: '#/primitive/uint64'
+  Aggregate:
+    type: object
+    properties:
+      aggregator_index:
+        $ref: '#/phase0/ValidatorIndex'
+      aggregate:
+        $ref: '#/phase0/Attestation'
+  SyncCommitteeSignature:
+    type: object
+    properties:
+      slot:
+        $ref: '#/phase0/Slot'
+      beacon_block_root:
+        $ref: '#/phase0/Root'
+      validator_index:
+        $ref: '#/phase0/ValidatorIndex'
+      signature:
+        $ref: '#/phase0/BLSSignature'
+  SyncCommitteeSubscription:
+    type: object
+    properties:
+      validator_index:
+        $ref: '#/phase0/ValidatorIndex'
+      sync_committee_indices:
+        type: array
+        items:
+          $ref: '#/primitive/uint64'
+      until_epoch:
+        allOf:
+        - $ref: '#/phase0/Epoch'
+        - description: The final epoch (exclusive value) that the specified validator
+            requires the subscription for
 altair:
   ParticipationFlags:
     allOf:
@@ -1262,6 +1399,17 @@ capella:
         $ref: '#/phase0/Root'
       body:
         $ref: '#/capella/BeaconBlockBody'
+  LightClientBootstrap:
+    type: object
+    properties:
+      header:
+        $ref: '#/capella/LightClientHeader'
+      current_sync_committee:
+        $ref: '#/altair/SyncCommittee'
+      current_sync_committee_branch:
+        type: array
+        items:
+          $ref: '#/primitive/Bytes32'
   LightClientFinalityUpdate:
     type: object
     properties:
@@ -1277,17 +1425,6 @@ capella:
         $ref: '#/altair/SyncAggregate'
       signature_slot:
         $ref: '#/phase0/Slot'
-  LightClientBootstrap:
-    type: object
-    properties:
-      header:
-        $ref: '#/capella/LightClientHeader'
-      current_sync_committee:
-        $ref: '#/altair/SyncCommittee'
-      current_sync_committee_branch:
-        type: array
-        items:
-          $ref: '#/primitive/Bytes32'
   LightClientOptimisticUpdate:
     type: object
     properties:
@@ -1578,6 +1715,36 @@ deneb:
         $ref: '#/phase0/Root'
       index:
         $ref: '#/deneb/BlobIndex'
+  BlobSidecars:
+    type: array
+    items:
+      $ref: '#/deneb/BlobSidecar'
+  Blobs:
+    type: array
+    items:
+      $ref: '#/deneb/Blob'
+  KZGProofs:
+    type: array
+    items:
+      $ref: '#/deneb/KZGProof'
+  BlockContents:
+    type: object
+    properties:
+      block:
+        $ref: '#/capella/BeaconBlock'
+      kzg_proofs:
+        $ref: '#/deneb/KZGProofs'
+      blobs:
+        $ref: '#/deneb/Blobs'
+  SignedBlockContents:
+    type: object
+    properties:
+      signed_block:
+        $ref: '#/capella/SignedBeaconBlock'
+      kzg_proofs:
+        $ref: '#/deneb/KZGProofs'
+      blobs:
+        $ref: '#/deneb/Blobs'
   BeaconBlock:
     type: object
     properties:
@@ -1696,6 +1863,17 @@ deneb:
         $ref: '#/deneb/BeaconBlock'
       signature:
         $ref: '#/phase0/BLSSignature'
+  LightClientBootstrap:
+    type: object
+    properties:
+      header:
+        $ref: '#/deneb/LightClientHeader'
+      current_sync_committee:
+        $ref: '#/altair/SyncCommittee'
+      current_sync_committee_branch:
+        type: array
+        items:
+          $ref: '#/primitive/Bytes32'
   LightClientFinalityUpdate:
     type: object
     properties:
@@ -1711,17 +1889,6 @@ deneb:
         $ref: '#/altair/SyncAggregate'
       signature_slot:
         $ref: '#/phase0/Slot'
-  LightClientBootstrap:
-    type: object
-    properties:
-      header:
-        $ref: '#/deneb/LightClientHeader'
-      current_sync_committee:
-        $ref: '#/altair/SyncCommittee'
-      current_sync_committee_branch:
-        type: array
-        items:
-          $ref: '#/primitive/Bytes32'
   LightClientOptimisticUpdate:
     type: object
     properties:
