@@ -1,4 +1,4 @@
-version: v1.4.0-beta.5
+spec_version: v1.4.0-beta.5
 sources:
   phase0:
     - {spec: beacon-chain.md}

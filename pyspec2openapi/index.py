@@ -62,7 +62,7 @@ def parse_specs(config: Dict, config_dir: str) -> Dict:
 def fetch_source(source: Dict, fork: str, config: Dict, config_dir: str) -> str:
     spec_filename = source.get('spec')
     if spec_filename is not None:
-        version = config['version']
+        version = config['spec_version']
         url = f"{spec_base_url}/{version}/specs/{fork}/{spec_filename}"
         print(f"fetching {url}", file=sys.stderr)
         response = requests.get(url)
