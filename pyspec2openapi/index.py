@@ -10,15 +10,16 @@ import sys
 
 spec_base_url = 'https://raw.githubusercontent.com/ethereum/consensus-specs'
 
+bitlist = {'type': 'string', 'format': 'hex', 'example': '0x01', 'pattern': '^0x[a-fA-F0-9]+$'}
 primitive_types = {
     'boolean': {'type': 'boolean', 'example': False},
     'uint8': {'type': 'integer', 'example': 1},
     'uint64': {'type': 'string', 'example': '1'},
     'uint256': {'type': 'string', 'example': '1'},
-    'Bitlist': {'type': 'string', 'format': 'hex', 'example': '0x01', 'pattern': '^0x[a-fA-F0-9]+$'},
-    'Bitvector': {'type': 'string', 'format': 'hex', 'example': '0x01', 'pattern': '^0x[a-fA-F0-9]+$'},
-    'ByteList': {'type': 'string', 'format': 'hex', 'example': '0x01', 'pattern': '^0x[a-fA-F0-9]+$'},
-    'ByteVector': {'type': 'string', 'format': 'hex', 'example': '0x01', 'pattern': '^0x[a-fA-F0-9]+$'},
+    'Bitlist': bitlist,
+    'Bitvector': bitlist,
+    'ByteList': bitlist,
+    'ByteVector': bitlist,
 }
 
 
@@ -41,7 +42,7 @@ def parse_specs(config: Dict, config_dir: str) -> Dict:
 
         for mutated_class in config['mutations'][fork]:
             dependant_classes = list(config['dependants'].get(mutated_class, set()))
-            dependant_classes.sort() # Ensure stable output, set may iterate in diff order each time
+            dependant_classes.sort()  # Ensure stable output, set may iterate in diff order
             for dependant_class in dependant_classes:
                 if dependant_class not in out[fork]:
                     print(f"Adding spec for {fork}.{dependant_class}", file=sys.stderr)
@@ -68,7 +69,7 @@ def fetch_source(source: Dict, fork: str, config: Dict, config_dir: str) -> str:
         response = requests.get(url)
         response.raise_for_status()  # Raise an exception for HTTP errors
         return response.text
-    
+
     filepath = source.get('file')
     if filepath is not None:
         if not os.path.isabs(filepath):
