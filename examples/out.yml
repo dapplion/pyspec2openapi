@@ -1453,17 +1453,22 @@ capella:
         $ref: '#/phase0/Root'
       body:
         $ref: '#/capella/BeaconBlockBody'
-  LightClientUpdate:
+  LightClientBootstrap:
+    type: object
+    properties:
+      header:
+        $ref: '#/capella/LightClientHeader'
+      current_sync_committee:
+        $ref: '#/altair/SyncCommittee'
+      current_sync_committee_branch:
+        type: array
+        items:
+          $ref: '#/primitive/Bytes32'
+  LightClientFinalityUpdate:
     type: object
     properties:
       attested_header:
         $ref: '#/capella/LightClientHeader'
-      next_sync_committee:
-        $ref: '#/altair/SyncCommittee'
-      next_sync_committee_branch:
-        type: array
-        items:
-          $ref: '#/primitive/Bytes32'
       finalized_header:
         $ref: '#/capella/LightClientHeader'
       finality_branch:
@@ -1483,22 +1488,17 @@ capella:
         $ref: '#/altair/SyncAggregate'
       signature_slot:
         $ref: '#/phase0/Slot'
-  LightClientBootstrap:
-    type: object
-    properties:
-      header:
-        $ref: '#/capella/LightClientHeader'
-      current_sync_committee:
-        $ref: '#/altair/SyncCommittee'
-      current_sync_committee_branch:
-        type: array
-        items:
-          $ref: '#/primitive/Bytes32'
-  LightClientFinalityUpdate:
+  LightClientUpdate:
     type: object
     properties:
       attested_header:
         $ref: '#/capella/LightClientHeader'
+      next_sync_committee:
+        $ref: '#/altair/SyncCommittee'
+      next_sync_committee_branch:
+        type: array
+        items:
+          $ref: '#/primitive/Bytes32'
       finalized_header:
         $ref: '#/capella/LightClientHeader'
       finality_branch:
@@ -1917,17 +1917,22 @@ deneb:
         $ref: '#/deneb/BeaconBlock'
       signature:
         $ref: '#/phase0/BLSSignature'
-  LightClientUpdate:
+  LightClientBootstrap:
+    type: object
+    properties:
+      header:
+        $ref: '#/deneb/LightClientHeader'
+      current_sync_committee:
+        $ref: '#/altair/SyncCommittee'
+      current_sync_committee_branch:
+        type: array
+        items:
+          $ref: '#/primitive/Bytes32'
+  LightClientFinalityUpdate:
     type: object
     properties:
       attested_header:
         $ref: '#/deneb/LightClientHeader'
-      next_sync_committee:
-        $ref: '#/altair/SyncCommittee'
-      next_sync_committee_branch:
-        type: array
-        items:
-          $ref: '#/primitive/Bytes32'
       finalized_header:
         $ref: '#/deneb/LightClientHeader'
       finality_branch:
@@ -1947,22 +1952,17 @@ deneb:
         $ref: '#/altair/SyncAggregate'
       signature_slot:
         $ref: '#/phase0/Slot'
-  LightClientBootstrap:
-    type: object
-    properties:
-      header:
-        $ref: '#/deneb/LightClientHeader'
-      current_sync_committee:
-        $ref: '#/altair/SyncCommittee'
-      current_sync_committee_branch:
-        type: array
-        items:
-          $ref: '#/primitive/Bytes32'
-  LightClientFinalityUpdate:
+  LightClientUpdate:
     type: object
     properties:
       attested_header:
         $ref: '#/deneb/LightClientHeader'
+      next_sync_committee:
+        $ref: '#/altair/SyncCommittee'
+      next_sync_committee_branch:
+        type: array
+        items:
+          $ref: '#/primitive/Bytes32'
       finalized_header:
         $ref: '#/deneb/LightClientHeader'
       finality_branch:

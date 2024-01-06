@@ -40,7 +40,9 @@ def parse_specs(config: Dict, config_dir: str) -> Dict:
             parse_doc(doc, fork, config, out)
 
         for mutated_class in config['mutations'][fork]:
-            for dependant_class in config['dependants'].get(mutated_class, set()):
+            dependant_classes = list(config['dependants'].get(mutated_class, set()))
+            dependant_classes.sort() # Ensure stable output, set may iterate in diff order each time
+            for dependant_class in dependant_classes:
                 if dependant_class not in out[fork]:
                     print(f"Adding spec for {fork}.{dependant_class}", file=sys.stderr)
                     parse_container_code_block(
@@ -185,7 +187,6 @@ def parse_container_code_block(code: str, fork: str, config: Dict, out: Dict):
             fork, prop_type, comment, config, out
         )
         config['dependants'].setdefault(prop_type, set()).add(class_name)
-    print(fork, class_name)
     out[fork][class_name] = {
         'type': 'object',
         'properties': properties,
