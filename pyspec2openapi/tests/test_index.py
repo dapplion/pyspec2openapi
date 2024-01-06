@@ -1,4 +1,5 @@
 import json
+import yaml
 from ..index import (
     extract_container_code_blocks,
     extract_custom_types_table,
@@ -8,17 +9,10 @@ from ..index import (
 
 
 def test_parse_specs():
-    config = {
-        'version': 'v1.4.0-beta.5',
-        'sources': {
-          'phase0': ['beacon-chain.md', 'validator.md'],
-          'altair': ['beacon-chain.md', 'validator.md'],
-          'bellatrix': ['beacon-chain.md', 'validator.md'],
-          'capella': ['beacon-chain.md', 'validator.md'],
-          'deneb': ['polynomial-commitments.md', 'beacon-chain.md', 'validator.md'],  # noqa: E501
-        }
-    }
-    out = parse_specs(config)
+    with open('./examples/config.yml', 'r') as file:
+        config = yaml.safe_load(file)
+
+    out = parse_specs(config, './examples')
     print(json.dumps(out, indent=2))
 
 
@@ -119,7 +113,11 @@ class Attestation(Container):
 ## Next section
 """
 
-    config = {}
+    config = {
+        'dependants': {},
+        'mutations': {'phase0': []},
+        'class_code': {}
+    }
     out = {
         'primitive': {
             'boolean': {'type': 'boolean', 'example': False},

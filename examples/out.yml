@@ -11,6 +11,26 @@ primitive:
   uint256:
     type: string
     example: '1'
+  Bitlist:
+    type: string
+    format: hex
+    example: '0x01'
+    pattern: ^0x[a-fA-F0-9]+$
+  Bitvector:
+    type: string
+    format: hex
+    example: '0x01'
+    pattern: ^0x[a-fA-F0-9]+$
+  ByteList:
+    type: string
+    format: hex
+    example: '0x01'
+    pattern: ^0x[a-fA-F0-9]+$
+  ByteVector:
+    type: string
+    format: hex
+    example: '0x01'
+    pattern: ^0x[a-fA-F0-9]+$
   Bytes32:
     type: string
     format: hex
@@ -343,7 +363,6 @@ phase0:
         $ref: '#/phase0/Checkpoint'
       finalized_checkpoint:
         $ref: '#/phase0/Checkpoint'
-    description: phase0 Beacon state
   SignedVoluntaryExit:
     type: object
     properties:
@@ -435,7 +454,7 @@ phase0:
       aggregate:
         $ref: '#/phase0/Attestation'
       selection_proof:
-        $ref: '#/phase0/BLSSignature'
+        $ref: '#/primitive/Bytes96'
   SignedAggregateAndProof:
     type: object
     properties:
@@ -443,6 +462,93 @@ phase0:
         $ref: '#/phase0/AggregateAndProof'
       signature:
         $ref: '#/phase0/BLSSignature'
+  BeaconCommitteeSelection:
+    type: object
+    properties:
+      validator_index:
+        $ref: '#/phase0/ValidatorIndex'
+      slot:
+        $ref: '#/phase0/Slot'
+      selection_proof:
+        $ref: '#/phase0/BLSSignature'
+  Genesis:
+    type: object
+    properties:
+      genesis_time:
+        allOf:
+        - $ref: '#/primitive/uint64'
+        - description: The genesis_time configured for the beacon node, which is the
+            unix time in seconds at which the Eth2.0 chain began.
+      genesis_validators_root:
+        $ref: '#/phase0/Root'
+      genesis_fork_version:
+        $ref: '#/phase0/Version'
+  DepositSnapshotResponse:
+    type: object
+    properties:
+      finalized:
+        type: array
+        items:
+          $ref: '#/phase0/Root'
+      deposit_root:
+        $ref: '#/phase0/Root'
+      deposit_count:
+        $ref: '#/primitive/uint64'
+      execution_block_hash:
+        $ref: '#/phase0/Root'
+      execution_block_height:
+        $ref: '#/primitive/uint64'
+  Committee:
+    type: object
+    properties:
+      index:
+        $ref: '#/phase0/CommitteeIndex'
+      slot:
+        $ref: '#/phase0/Slot'
+      validators:
+        type: array
+        items:
+          $ref: '#/phase0/ValidatorIndex'
+        description: List of validator indices assigned to this committee
+  AttesterDuty:
+    type: object
+    properties:
+      pubkey:
+        $ref: '#/phase0/BLSPubkey'
+      validator_index:
+        $ref: '#/phase0/ValidatorIndex'
+      committee_index:
+        $ref: '#/phase0/CommitteeIndex'
+      committee_length:
+        $ref: '#/primitive/uint64'
+      committees_at_slot:
+        $ref: '#/primitive/uint64'
+      validator_committee_index:
+        allOf:
+        - $ref: '#/primitive/uint64'
+        - description: Index of validator in committee
+      slot:
+        allOf:
+        - $ref: '#/phase0/Slot'
+        - description: The slot at which the validator must attest
+  ProposerDuty:
+    type: object
+    properties:
+      pubkey:
+        $ref: '#/phase0/BLSPubkey'
+      validator_index:
+        $ref: '#/phase0/ValidatorIndex'
+      slot:
+        allOf:
+        - $ref: '#/phase0/Slot'
+        - description: The slot at which the validator must propose block
+  Aggregate:
+    type: object
+    properties:
+      aggregator_index:
+        $ref: '#/phase0/ValidatorIndex'
+      aggregate:
+        $ref: '#/phase0/Attestation'
 altair:
   ParticipationFlags:
     allOf:
@@ -622,6 +728,158 @@ altair:
         $ref: '#/phase0/Slot'
       subcommittee_index:
         $ref: '#/primitive/uint64'
+  LightClientHeader:
+    type: object
+    properties:
+      beacon:
+        $ref: '#/phase0/BeaconBlockHeader'
+  LightClientBootstrap:
+    type: object
+    properties:
+      header:
+        $ref: '#/altair/LightClientHeader'
+      current_sync_committee:
+        $ref: '#/altair/SyncCommittee'
+      current_sync_committee_branch:
+        type: array
+        items:
+          $ref: '#/primitive/Bytes32'
+  LightClientUpdate:
+    type: object
+    properties:
+      attested_header:
+        $ref: '#/altair/LightClientHeader'
+      next_sync_committee:
+        $ref: '#/altair/SyncCommittee'
+      next_sync_committee_branch:
+        type: array
+        items:
+          $ref: '#/primitive/Bytes32'
+      finalized_header:
+        $ref: '#/altair/LightClientHeader'
+      finality_branch:
+        type: array
+        items:
+          $ref: '#/primitive/Bytes32'
+      sync_aggregate:
+        $ref: '#/altair/SyncAggregate'
+      signature_slot:
+        $ref: '#/phase0/Slot'
+  LightClientFinalityUpdate:
+    type: object
+    properties:
+      attested_header:
+        $ref: '#/altair/LightClientHeader'
+      finalized_header:
+        $ref: '#/altair/LightClientHeader'
+      finality_branch:
+        type: array
+        items:
+          $ref: '#/primitive/Bytes32'
+      sync_aggregate:
+        $ref: '#/altair/SyncAggregate'
+      signature_slot:
+        $ref: '#/phase0/Slot'
+  LightClientOptimisticUpdate:
+    type: object
+    properties:
+      attested_header:
+        $ref: '#/altair/LightClientHeader'
+      sync_aggregate:
+        $ref: '#/altair/SyncAggregate'
+      signature_slot:
+        $ref: '#/phase0/Slot'
+  ValidatorsByIndex:
+    type: array
+    items:
+      $ref: '#/phase0/ValidatorIndex'
+  SyncCommitteeSelection:
+    type: object
+    properties:
+      validator_index:
+        $ref: '#/phase0/ValidatorIndex'
+      slot:
+        allOf:
+        - $ref: '#/phase0/Slot'
+        - description: The slot at which validator is assigned to produce a sync committee
+            contribution
+      subcommittee_index:
+        allOf:
+        - $ref: '#/primitive/uint64'
+        - description: SubcommitteeIndex to which the validator is assigned
+      selection_proof:
+        allOf:
+        - $ref: '#/phase0/BLSSignature'
+        - description: The `slot_signature` calculated by the validator for the upcoming
+            sync committee slot
+  SyncDuty:
+    type: object
+    properties:
+      pubkey:
+        $ref: '#/primitive/Bytes48'
+      validator_index:
+        $ref: '#/phase0/ValidatorIndex'
+      validator_sync_committee_indices:
+        type: array
+        items:
+          $ref: '#/primitive/uint64'
+  SyncCommitteeSignature:
+    type: object
+    properties:
+      slot:
+        $ref: '#/phase0/Slot'
+      beacon_block_root:
+        $ref: '#/phase0/Root'
+      validator_index:
+        $ref: '#/phase0/ValidatorIndex'
+      signature:
+        $ref: '#/phase0/BLSSignature'
+  SyncCommitteeSubscription:
+    type: object
+    properties:
+      validator_index:
+        $ref: '#/phase0/ValidatorIndex'
+      sync_committee_indices:
+        type: array
+        items:
+          $ref: '#/primitive/uint64'
+      until_epoch:
+        allOf:
+        - $ref: '#/phase0/Epoch'
+        - description: The final epoch (exclusive value) that the specified validator
+            requires the subscription for
+  IndexedSyncCommittee:
+    type: object
+    properties:
+      validators:
+        allOf:
+        - $ref: '#/altair/ValidatorsByIndex'
+        - description: all of the validator indices in the current sync committee
+      validator_aggregates:
+        type: array
+        items:
+          $ref: '#/altair/ValidatorsByIndex'
+        description: Subcommittee slices of the current sync committee
+  BeaconBlock:
+    type: object
+    properties:
+      slot:
+        $ref: '#/phase0/Slot'
+      proposer_index:
+        $ref: '#/phase0/ValidatorIndex'
+      parent_root:
+        $ref: '#/phase0/Root'
+      state_root:
+        $ref: '#/phase0/Root'
+      body:
+        $ref: '#/altair/BeaconBlockBody'
+  SignedBeaconBlock:
+    type: object
+    properties:
+      message:
+        $ref: '#/altair/BeaconBlock'
+      signature:
+        $ref: '#/phase0/BLSSignature'
 bellatrix:
   Transaction:
     allOf:
@@ -821,6 +1079,109 @@ bellatrix:
         $ref: '#/altair/SyncCommittee'
       latest_execution_payload_header:
         $ref: '#/bellatrix/ExecutionPayloadHeader'
+  ValidatorRegistration:
+    type: object
+    properties:
+      fee_recipient:
+        allOf:
+        - $ref: '#/bellatrix/ExecutionAddress'
+        - description: Address to receive fees from the block
+      gas_limit:
+        allOf:
+        - $ref: '#/primitive/uint64'
+        - description: Preferred gas limit of validator
+      timestamp:
+        allOf:
+        - $ref: '#/primitive/uint64'
+        - description: Unix timestamp of registration
+      pubkey:
+        allOf:
+        - $ref: '#/phase0/BLSPubkey'
+        - description: BLS public key of validator
+  SignedValidatorRegistration:
+    type: object
+    properties:
+      message:
+        $ref: '#/bellatrix/ValidatorRegistration'
+      signature:
+        $ref: '#/phase0/BLSSignature'
+  BeaconBlock:
+    type: object
+    properties:
+      slot:
+        $ref: '#/phase0/Slot'
+      proposer_index:
+        $ref: '#/phase0/ValidatorIndex'
+      parent_root:
+        $ref: '#/phase0/Root'
+      state_root:
+        $ref: '#/phase0/Root'
+      body:
+        $ref: '#/bellatrix/BeaconBlockBody'
+  SignedBeaconBlock:
+    type: object
+    properties:
+      message:
+        $ref: '#/bellatrix/BeaconBlock'
+      signature:
+        $ref: '#/phase0/BLSSignature'
+  BlindedBeaconBlockBody:
+    type: object
+    properties:
+      randao_reveal:
+        $ref: '#/phase0/BLSSignature'
+      eth1_data:
+        allOf:
+        - $ref: '#/phase0/Eth1Data'
+        - description: Eth1 data vote
+      graffiti:
+        allOf:
+        - $ref: '#/primitive/Bytes32'
+        - description: Arbitrary data
+      proposer_slashings:
+        type: array
+        items:
+          $ref: '#/phase0/ProposerSlashing'
+      attester_slashings:
+        type: array
+        items:
+          $ref: '#/phase0/AttesterSlashing'
+      attestations:
+        type: array
+        items:
+          $ref: '#/phase0/Attestation'
+      deposits:
+        type: array
+        items:
+          $ref: '#/phase0/Deposit'
+      voluntary_exits:
+        type: array
+        items:
+          $ref: '#/phase0/SignedVoluntaryExit'
+      sync_aggregate:
+        $ref: '#/altair/SyncAggregate'
+      execution_payload_header:
+        $ref: '#/bellatrix/ExecutionPayloadHeader'
+  BlindedBeaconBlock:
+    type: object
+    properties:
+      slot:
+        $ref: '#/phase0/Slot'
+      proposer_index:
+        $ref: '#/phase0/ValidatorIndex'
+      parent_root:
+        $ref: '#/phase0/Root'
+      state_root:
+        $ref: '#/phase0/Root'
+      body:
+        $ref: '#/bellatrix/BlindedBeaconBlockBody'
+  SignedBlindedBeaconBlock:
+    type: object
+    properties:
+      message:
+        $ref: '#/bellatrix/BlindedBeaconBlock'
+      signature:
+        $ref: '#/phase0/BLSSignature'
 capella:
   WithdrawalIndex:
     allOf:
@@ -1068,6 +1429,154 @@ capella:
         type: array
         items:
           $ref: '#/capella/HistoricalSummary'
+  LightClientHeader:
+    type: object
+    properties:
+      beacon:
+        $ref: '#/phase0/BeaconBlockHeader'
+      execution:
+        $ref: '#/capella/ExecutionPayloadHeader'
+      execution_branch:
+        type: array
+        items:
+          $ref: '#/primitive/Bytes32'
+  BeaconBlock:
+    type: object
+    properties:
+      slot:
+        $ref: '#/phase0/Slot'
+      proposer_index:
+        $ref: '#/phase0/ValidatorIndex'
+      parent_root:
+        $ref: '#/phase0/Root'
+      state_root:
+        $ref: '#/phase0/Root'
+      body:
+        $ref: '#/capella/BeaconBlockBody'
+  LightClientBootstrap:
+    type: object
+    properties:
+      header:
+        $ref: '#/capella/LightClientHeader'
+      current_sync_committee:
+        $ref: '#/altair/SyncCommittee'
+      current_sync_committee_branch:
+        type: array
+        items:
+          $ref: '#/primitive/Bytes32'
+  LightClientFinalityUpdate:
+    type: object
+    properties:
+      attested_header:
+        $ref: '#/capella/LightClientHeader'
+      finalized_header:
+        $ref: '#/capella/LightClientHeader'
+      finality_branch:
+        type: array
+        items:
+          $ref: '#/primitive/Bytes32'
+      sync_aggregate:
+        $ref: '#/altair/SyncAggregate'
+      signature_slot:
+        $ref: '#/phase0/Slot'
+  LightClientOptimisticUpdate:
+    type: object
+    properties:
+      attested_header:
+        $ref: '#/capella/LightClientHeader'
+      sync_aggregate:
+        $ref: '#/altair/SyncAggregate'
+      signature_slot:
+        $ref: '#/phase0/Slot'
+  LightClientUpdate:
+    type: object
+    properties:
+      attested_header:
+        $ref: '#/capella/LightClientHeader'
+      next_sync_committee:
+        $ref: '#/altair/SyncCommittee'
+      next_sync_committee_branch:
+        type: array
+        items:
+          $ref: '#/primitive/Bytes32'
+      finalized_header:
+        $ref: '#/capella/LightClientHeader'
+      finality_branch:
+        type: array
+        items:
+          $ref: '#/primitive/Bytes32'
+      sync_aggregate:
+        $ref: '#/altair/SyncAggregate'
+      signature_slot:
+        $ref: '#/phase0/Slot'
+  SignedBeaconBlock:
+    type: object
+    properties:
+      message:
+        $ref: '#/capella/BeaconBlock'
+      signature:
+        $ref: '#/phase0/BLSSignature'
+  BlindedBeaconBlockBody:
+    type: object
+    properties:
+      randao_reveal:
+        $ref: '#/phase0/BLSSignature'
+      eth1_data:
+        allOf:
+        - $ref: '#/phase0/Eth1Data'
+        - description: Eth1 data vote
+      graffiti:
+        allOf:
+        - $ref: '#/primitive/Bytes32'
+        - description: Arbitrary data
+      proposer_slashings:
+        type: array
+        items:
+          $ref: '#/phase0/ProposerSlashing'
+      attester_slashings:
+        type: array
+        items:
+          $ref: '#/phase0/AttesterSlashing'
+      attestations:
+        type: array
+        items:
+          $ref: '#/phase0/Attestation'
+      deposits:
+        type: array
+        items:
+          $ref: '#/phase0/Deposit'
+      voluntary_exits:
+        type: array
+        items:
+          $ref: '#/phase0/SignedVoluntaryExit'
+      sync_aggregate:
+        $ref: '#/altair/SyncAggregate'
+      bls_to_execution_changes:
+        type: array
+        items:
+          $ref: '#/capella/SignedBLSToExecutionChange'
+      execution_payload_header:
+        $ref: '#/capella/ExecutionPayloadHeader'
+  BlindedBeaconBlock:
+    type: object
+    properties:
+      slot:
+        $ref: '#/phase0/Slot'
+      proposer_index:
+        $ref: '#/phase0/ValidatorIndex'
+      parent_root:
+        $ref: '#/phase0/Root'
+      state_root:
+        $ref: '#/phase0/Root'
+      body:
+        $ref: '#/capella/BlindedBeaconBlockBody'
+  SignedBlindedBeaconBlock:
+    type: object
+    properties:
+      message:
+        $ref: '#/capella/BlindedBeaconBlock'
+      signature:
+        $ref: '#/phase0/BLSSignature'
 deneb:
   G1Point:
     $ref: '#/primitive/Bytes48'
@@ -1232,3 +1741,300 @@ deneb:
         $ref: '#/primitive/uint64'
       excess_blob_gas:
         $ref: '#/primitive/uint64'
+  BlobSidecar:
+    type: object
+    properties:
+      index:
+        allOf:
+        - $ref: '#/deneb/BlobIndex'
+        - description: Index of blob in block
+      blob:
+        $ref: '#/deneb/Blob'
+      kzg_commitment:
+        $ref: '#/deneb/KZGCommitment'
+      kzg_proof:
+        allOf:
+        - $ref: '#/deneb/KZGProof'
+        - description: Allows for quick verification of kzg_commitment
+      signed_block_header:
+        $ref: '#/phase0/SignedBeaconBlockHeader'
+      kzg_commitment_inclusion_proof:
+        type: array
+        items:
+          $ref: '#/primitive/Bytes32'
+  BlobIdentifier:
+    type: object
+    properties:
+      block_root:
+        $ref: '#/phase0/Root'
+      index:
+        $ref: '#/deneb/BlobIndex'
+  BlobSidecars:
+    type: array
+    items:
+      $ref: '#/deneb/BlobSidecar'
+  Blobs:
+    type: array
+    items:
+      $ref: '#/deneb/Blob'
+  KZGProofs:
+    type: array
+    items:
+      $ref: '#/deneb/KZGProof'
+  BlockContents:
+    type: object
+    properties:
+      block:
+        $ref: '#/capella/BeaconBlock'
+      kzg_proofs:
+        $ref: '#/deneb/KZGProofs'
+      blobs:
+        $ref: '#/deneb/Blobs'
+  SignedBlockContents:
+    type: object
+    properties:
+      signed_block:
+        $ref: '#/capella/SignedBeaconBlock'
+      kzg_proofs:
+        $ref: '#/deneb/KZGProofs'
+      blobs:
+        $ref: '#/deneb/Blobs'
+  BeaconBlock:
+    type: object
+    properties:
+      slot:
+        $ref: '#/phase0/Slot'
+      proposer_index:
+        $ref: '#/phase0/ValidatorIndex'
+      parent_root:
+        $ref: '#/phase0/Root'
+      state_root:
+        $ref: '#/phase0/Root'
+      body:
+        $ref: '#/deneb/BeaconBlockBody'
+  BeaconState:
+    type: object
+    properties:
+      genesis_time:
+        $ref: '#/primitive/uint64'
+      genesis_validators_root:
+        $ref: '#/phase0/Root'
+      slot:
+        $ref: '#/phase0/Slot'
+      fork:
+        $ref: '#/phase0/Fork'
+      latest_block_header:
+        $ref: '#/phase0/BeaconBlockHeader'
+      block_roots:
+        type: array
+        items:
+          $ref: '#/phase0/Root'
+      state_roots:
+        type: array
+        items:
+          $ref: '#/phase0/Root'
+      historical_roots:
+        type: array
+        items:
+          $ref: '#/phase0/Root'
+        description: Frozen in Capella, replaced by historical_summaries
+      eth1_data:
+        $ref: '#/phase0/Eth1Data'
+      eth1_data_votes:
+        type: array
+        items:
+          $ref: '#/phase0/Eth1Data'
+      eth1_deposit_index:
+        $ref: '#/primitive/uint64'
+      validators:
+        type: array
+        items:
+          $ref: '#/phase0/Validator'
+      balances:
+        type: array
+        items:
+          $ref: '#/phase0/Gwei'
+      randao_mixes:
+        type: array
+        items:
+          $ref: '#/primitive/Bytes32'
+      slashings:
+        type: array
+        items:
+          $ref: '#/phase0/Gwei'
+        description: Per-epoch sums of slashed effective balances
+      previous_epoch_participation:
+        type: array
+        items:
+          $ref: '#/altair/ParticipationFlags'
+      current_epoch_participation:
+        type: array
+        items:
+          $ref: '#/altair/ParticipationFlags'
+      justification_bits:
+        allOf:
+        - $ref: '#/primitive/Bitlist'
+        - description: Bit set for every recent justified epoch
+      previous_justified_checkpoint:
+        $ref: '#/phase0/Checkpoint'
+      current_justified_checkpoint:
+        $ref: '#/phase0/Checkpoint'
+      finalized_checkpoint:
+        $ref: '#/phase0/Checkpoint'
+      inactivity_scores:
+        type: array
+        items:
+          $ref: '#/primitive/uint64'
+      current_sync_committee:
+        $ref: '#/altair/SyncCommittee'
+      next_sync_committee:
+        $ref: '#/altair/SyncCommittee'
+      latest_execution_payload_header:
+        $ref: '#/deneb/ExecutionPayloadHeader'
+      next_withdrawal_index:
+        $ref: '#/capella/WithdrawalIndex'
+      next_withdrawal_validator_index:
+        $ref: '#/phase0/ValidatorIndex'
+      historical_summaries:
+        type: array
+        items:
+          $ref: '#/capella/HistoricalSummary'
+  LightClientHeader:
+    type: object
+    properties:
+      beacon:
+        $ref: '#/phase0/BeaconBlockHeader'
+      execution:
+        $ref: '#/deneb/ExecutionPayloadHeader'
+      execution_branch:
+        type: array
+        items:
+          $ref: '#/primitive/Bytes32'
+  SignedBeaconBlock:
+    type: object
+    properties:
+      message:
+        $ref: '#/deneb/BeaconBlock'
+      signature:
+        $ref: '#/phase0/BLSSignature'
+  LightClientBootstrap:
+    type: object
+    properties:
+      header:
+        $ref: '#/deneb/LightClientHeader'
+      current_sync_committee:
+        $ref: '#/altair/SyncCommittee'
+      current_sync_committee_branch:
+        type: array
+        items:
+          $ref: '#/primitive/Bytes32'
+  LightClientFinalityUpdate:
+    type: object
+    properties:
+      attested_header:
+        $ref: '#/deneb/LightClientHeader'
+      finalized_header:
+        $ref: '#/deneb/LightClientHeader'
+      finality_branch:
+        type: array
+        items:
+          $ref: '#/primitive/Bytes32'
+      sync_aggregate:
+        $ref: '#/altair/SyncAggregate'
+      signature_slot:
+        $ref: '#/phase0/Slot'
+  LightClientOptimisticUpdate:
+    type: object
+    properties:
+      attested_header:
+        $ref: '#/deneb/LightClientHeader'
+      sync_aggregate:
+        $ref: '#/altair/SyncAggregate'
+      signature_slot:
+        $ref: '#/phase0/Slot'
+  LightClientUpdate:
+    type: object
+    properties:
+      attested_header:
+        $ref: '#/deneb/LightClientHeader'
+      next_sync_committee:
+        $ref: '#/altair/SyncCommittee'
+      next_sync_committee_branch:
+        type: array
+        items:
+          $ref: '#/primitive/Bytes32'
+      finalized_header:
+        $ref: '#/deneb/LightClientHeader'
+      finality_branch:
+        type: array
+        items:
+          $ref: '#/primitive/Bytes32'
+      sync_aggregate:
+        $ref: '#/altair/SyncAggregate'
+      signature_slot:
+        $ref: '#/phase0/Slot'
+  BlindedBeaconBlockBody:
+    type: object
+    properties:
+      randao_reveal:
+        $ref: '#/phase0/BLSSignature'
+      eth1_data:
+        allOf:
+        - $ref: '#/phase0/Eth1Data'
+        - description: Eth1 data vote
+      graffiti:
+        allOf:
+        - $ref: '#/primitive/Bytes32'
+        - description: Arbitrary data
+      proposer_slashings:
+        type: array
+        items:
+          $ref: '#/phase0/ProposerSlashing'
+      attester_slashings:
+        type: array
+        items:
+          $ref: '#/phase0/AttesterSlashing'
+      attestations:
+        type: array
+        items:
+          $ref: '#/phase0/Attestation'
+      deposits:
+        type: array
+        items:
+          $ref: '#/phase0/Deposit'
+      voluntary_exits:
+        type: array
+        items:
+          $ref: '#/phase0/SignedVoluntaryExit'
+      sync_aggregate:
+        $ref: '#/altair/SyncAggregate'
+      bls_to_execution_changes:
+        type: array
+        items:
+          $ref: '#/capella/SignedBLSToExecutionChange'
+      blob_kzg_commitments:
+        type: array
+        items:
+          $ref: '#/deneb/KZGCommitment'
+      execution_payload_header:
+        $ref: '#/deneb/ExecutionPayloadHeader'
+  BlindedBeaconBlock:
+    type: object
+    properties:
+      slot:
+        $ref: '#/phase0/Slot'
+      proposer_index:
+        $ref: '#/phase0/ValidatorIndex'
+      parent_root:
+        $ref: '#/phase0/Root'
+      state_root:
+        $ref: '#/phase0/Root'
+      body:
+        $ref: '#/deneb/BlindedBeaconBlockBody'
+  SignedBlindedBeaconBlock:
+    type: object
+    properties:
+      message:
+        $ref: '#/deneb/BlindedBeaconBlock'
+      signature:
+        $ref: '#/phase0/BLSSignature'

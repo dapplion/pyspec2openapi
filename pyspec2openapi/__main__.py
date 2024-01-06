@@ -1,5 +1,6 @@
 import sys
 import yaml
+import os
 
 from pyspec2openapi import parse_specs
 
@@ -22,7 +23,9 @@ def main():
     except yaml.YAMLError as exc:
         print(f"Error parsing YAML file: {exc}")
 
-    out = parse_specs(config)
+    config_dir = os.path.dirname(os.path.abspath(config_path))
+
+    out = parse_specs(config, config_dir)
     with open(out_path, 'w') as file:
         file.write(yaml.dump(out, sort_keys=False))
 

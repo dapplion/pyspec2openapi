@@ -27,7 +27,7 @@ jobs:
       run: pytest -vv
 
     - name: Generate specs output
-      run: python -m pyspec2openapi pyspec2openapi/tests/example_config.yml pyspec2openapi/tests/example_specs_out.yml
+      run: python -m pyspec2openapi examples/config.yml examples/out.yml
     - name: Check specs out is unchanged
       run: |
         if [ -z "$(git status --porcelain)" ]; then 
