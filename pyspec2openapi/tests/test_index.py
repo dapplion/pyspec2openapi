@@ -133,13 +133,13 @@ class Attestation(Container):
             'Bytes32': {
                 'type': 'string',
                 'format': 'hex',
-                'example': "0x0123456789abcdef0123456789abcdef",
+                'example': "0x0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
                 'pattern': "^0x[a-fA-F0-9]{64}$",
             },
             'Bytes96': {
                 'type': 'string',
                 'format': 'hex',
-                'example': "0x0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",  # noqa: E501
+                'example': "0x0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",  # noqa: E501
                 'pattern': "^0x[a-fA-F0-9]{192}$",
             }
         },

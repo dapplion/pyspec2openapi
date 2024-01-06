@@ -34,27 +34,27 @@ primitive:
   Bytes32:
     type: string
     format: hex
-    example: '0x0123456789abcdef0123456789abcdef'
+    example: '0x0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef'
     pattern: ^0x[a-fA-F0-9]{64}$
   Bytes4:
     type: string
     format: hex
-    example: '0x0123'
+    example: '0x01234567'
     pattern: ^0x[a-fA-F0-9]{8}$
   Bytes48:
     type: string
     format: hex
-    example: '0x0123456789abcdef0123456789abcdef0123456789abcdef'
+    example: '0x0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef'
     pattern: ^0x[a-fA-F0-9]{96}$
   Bytes96:
     type: string
     format: hex
-    example: '0x0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef'
+    example: '0x0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef'
     pattern: ^0x[a-fA-F0-9]{192}$
   Bytes20:
     type: string
     format: hex
-    example: '0x0123456789abcdef0123'
+    example: '0x0123456789abcdef0123456789abcdef01234567'
     pattern: ^0x[a-fA-F0-9]{40}$
 phase0:
   Slot:

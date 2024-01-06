@@ -299,6 +299,6 @@ def bytes_type(byte_len: int) -> Dict:
     return {
         'type': 'string',
         'format': 'hex',
-        'example': f"0x{generate_hex_string(byte_len)}",
+        'example': f"0x{generate_hex_string(byte_len * 2)}",
         'pattern': f"^0x[a-fA-F0-9]{{{byte_len * 2}}}$",
     }
