@@ -471,25 +471,6 @@ phase0:
         $ref: '#/phase0/Slot'
       selection_proof:
         $ref: '#/phase0/BLSSignature'
-  SyncCommitteeSelection:
-    type: object
-    properties:
-      validator_index:
-        $ref: '#/phase0/ValidatorIndex'
-      slot:
-        allOf:
-        - $ref: '#/phase0/Slot'
-        - description: The slot at which validator is assigned to produce a sync committee
-            contribution
-      subcommittee_index:
-        allOf:
-        - $ref: '#/primitive/uint64'
-        - description: SubcommitteeIndex to which the validator is assigned
-      selection_proof:
-        allOf:
-        - $ref: '#/phase0/BLSSignature'
-        - description: The `slot_signature` calculated by the validator for the upcoming
-            sync committee slot
   DepositSnapshotResponse:
     type: object
     properties:
@@ -549,17 +530,6 @@ phase0:
         allOf:
         - $ref: '#/phase0/Slot'
         - description: The slot at which the validator must propose block
-  SyncDuty:
-    type: object
-    properties:
-      pubkey:
-        $ref: '#/primitive/Bytes48'
-      validator_index:
-        $ref: '#/phase0/ValidatorIndex'
-      validator_sync_committee_indices:
-        type: array
-        items:
-          $ref: '#/primitive/uint64'
   Aggregate:
     type: object
     properties:
@@ -567,31 +537,6 @@ phase0:
         $ref: '#/phase0/ValidatorIndex'
       aggregate:
         $ref: '#/phase0/Attestation'
-  SyncCommitteeSignature:
-    type: object
-    properties:
-      slot:
-        $ref: '#/phase0/Slot'
-      beacon_block_root:
-        $ref: '#/phase0/Root'
-      validator_index:
-        $ref: '#/phase0/ValidatorIndex'
-      signature:
-        $ref: '#/phase0/BLSSignature'
-  SyncCommitteeSubscription:
-    type: object
-    properties:
-      validator_index:
-        $ref: '#/phase0/ValidatorIndex'
-      sync_committee_indices:
-        type: array
-        items:
-          $ref: '#/primitive/uint64'
-      until_epoch:
-        allOf:
-        - $ref: '#/phase0/Epoch'
-        - description: The final epoch (exclusive value) that the specified validator
-            requires the subscription for
 altair:
   ParticipationFlags:
     allOf:
@@ -832,6 +777,61 @@ altair:
         $ref: '#/altair/SyncAggregate'
       signature_slot:
         $ref: '#/phase0/Slot'
+  SyncCommitteeSelection:
+    type: object
+    properties:
+      validator_index:
+        $ref: '#/phase0/ValidatorIndex'
+      slot:
+        allOf:
+        - $ref: '#/phase0/Slot'
+        - description: The slot at which validator is assigned to produce a sync committee
+            contribution
+      subcommittee_index:
+        allOf:
+        - $ref: '#/primitive/uint64'
+        - description: SubcommitteeIndex to which the validator is assigned
+      selection_proof:
+        allOf:
+        - $ref: '#/phase0/BLSSignature'
+        - description: The `slot_signature` calculated by the validator for the upcoming
+            sync committee slot
+  SyncDuty:
+    type: object
+    properties:
+      pubkey:
+        $ref: '#/primitive/Bytes48'
+      validator_index:
+        $ref: '#/phase0/ValidatorIndex'
+      validator_sync_committee_indices:
+        type: array
+        items:
+          $ref: '#/primitive/uint64'
+  SyncCommitteeSignature:
+    type: object
+    properties:
+      slot:
+        $ref: '#/phase0/Slot'
+      beacon_block_root:
+        $ref: '#/phase0/Root'
+      validator_index:
+        $ref: '#/phase0/ValidatorIndex'
+      signature:
+        $ref: '#/phase0/BLSSignature'
+  SyncCommitteeSubscription:
+    type: object
+    properties:
+      validator_index:
+        $ref: '#/phase0/ValidatorIndex'
+      sync_committee_indices:
+        type: array
+        items:
+          $ref: '#/primitive/uint64'
+      until_epoch:
+        allOf:
+        - $ref: '#/phase0/Epoch'
+        - description: The final epoch (exclusive value) that the specified validator
+            requires the subscription for
   BeaconBlock:
     type: object
     properties:
@@ -1051,6 +1051,32 @@ bellatrix:
         $ref: '#/altair/SyncCommittee'
       latest_execution_payload_header:
         $ref: '#/bellatrix/ExecutionPayloadHeader'
+  ValidatorRegistration:
+    type: object
+    properties:
+      fee_recipient:
+        allOf:
+        - $ref: '#/bellatrix/ExecutionAddress'
+        - description: Address to receive fees from the block
+      gas_limit:
+        allOf:
+        - $ref: '#/primitive/uint64'
+        - description: Preferred gas limit of validator
+      timestamp:
+        allOf:
+        - $ref: '#/primitive/uint64'
+        - description: Unix timestamp of registration
+      pubkey:
+        allOf:
+        - $ref: '#/phase0/BLSPubkey'
+        - description: BLS public key of validator
+  SignedValidatorRegistration:
+    type: object
+    properties:
+      message:
+        $ref: '#/bellatrix/ValidatorRegistration'
+      signature:
+        $ref: '#/phase0/BLSSignature'
   BeaconBlock:
     type: object
     properties:
@@ -1399,17 +1425,6 @@ capella:
         $ref: '#/phase0/Root'
       body:
         $ref: '#/capella/BeaconBlockBody'
-  LightClientBootstrap:
-    type: object
-    properties:
-      header:
-        $ref: '#/capella/LightClientHeader'
-      current_sync_committee:
-        $ref: '#/altair/SyncCommittee'
-      current_sync_committee_branch:
-        type: array
-        items:
-          $ref: '#/primitive/Bytes32'
   LightClientFinalityUpdate:
     type: object
     properties:
@@ -1425,6 +1440,17 @@ capella:
         $ref: '#/altair/SyncAggregate'
       signature_slot:
         $ref: '#/phase0/Slot'
+  LightClientBootstrap:
+    type: object
+    properties:
+      header:
+        $ref: '#/capella/LightClientHeader'
+      current_sync_committee:
+        $ref: '#/altair/SyncCommittee'
+      current_sync_committee_branch:
+        type: array
+        items:
+          $ref: '#/primitive/Bytes32'
   LightClientOptimisticUpdate:
     type: object
     properties:
@@ -1863,17 +1889,6 @@ deneb:
         $ref: '#/deneb/BeaconBlock'
       signature:
         $ref: '#/phase0/BLSSignature'
-  LightClientBootstrap:
-    type: object
-    properties:
-      header:
-        $ref: '#/deneb/LightClientHeader'
-      current_sync_committee:
-        $ref: '#/altair/SyncCommittee'
-      current_sync_committee_branch:
-        type: array
-        items:
-          $ref: '#/primitive/Bytes32'
   LightClientFinalityUpdate:
     type: object
     properties:
@@ -1889,6 +1904,17 @@ deneb:
         $ref: '#/altair/SyncAggregate'
       signature_slot:
         $ref: '#/phase0/Slot'
+  LightClientBootstrap:
+    type: object
+    properties:
+      header:
+        $ref: '#/deneb/LightClientHeader'
+      current_sync_committee:
+        $ref: '#/altair/SyncCommittee'
+      current_sync_committee_branch:
+        type: array
+        items:
+          $ref: '#/primitive/Bytes32'
   LightClientOptimisticUpdate:
     type: object
     properties:

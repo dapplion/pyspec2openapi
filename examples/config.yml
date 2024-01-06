@@ -8,9 +8,11 @@ sources:
     - {spec: beacon-chain.md}
     - {spec: validator.md}
     - {spec: light-client/sync-protocol.md}
+    - {file: examples/extra_types/altair.md}
   bellatrix:
     - {spec: beacon-chain.md}
     - {spec: validator.md}
+    - {file: examples/extra_types/bellatrix.md}
   capella:
     - {spec: beacon-chain.md}
     - {spec: validator.md}
