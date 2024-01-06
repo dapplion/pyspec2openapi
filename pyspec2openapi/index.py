@@ -10,16 +10,15 @@ import sys
 
 spec_base_url = 'https://raw.githubusercontent.com/ethereum/consensus-specs'
 
-bitlist = {'type': 'string', 'format': 'hex', 'example': '0x01', 'pattern': '^0x[a-fA-F0-9]+$'}
 primitive_types = {
     'boolean': {'type': 'boolean', 'example': False},
     'uint8': {'type': 'integer', 'example': 1},
     'uint64': {'type': 'string', 'example': '1'},
     'uint256': {'type': 'string', 'example': '1'},
-    'Bitlist': bitlist,
-    'Bitvector': bitlist,
-    'ByteList': bitlist,
-    'ByteVector': bitlist,
+    'Bitlist':    {'type': 'string', 'format': 'hex', 'example': '0x01', 'pattern': '^0x[a-fA-F0-9]+$'},  # noqa: E501
+    'Bitvector':  {'type': 'string', 'format': 'hex', 'example': '0x01', 'pattern': '^0x[a-fA-F0-9]+$'},  # noqa: E501
+    'ByteList':   {'type': 'string', 'format': 'hex', 'example': '0x01', 'pattern': '^0x[a-fA-F0-9]+$'},  # noqa: E501
+    'ByteVector': {'type': 'string', 'format': 'hex', 'example': '0x01', 'pattern': '^0x[a-fA-F0-9]+$'},  # noqa: E501
 }
 
 
