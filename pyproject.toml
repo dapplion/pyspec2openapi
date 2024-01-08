@@ -3,9 +3,15 @@ name = "pyspec2openapi"
 version = "0.2.0"
 description = "Convert Ethereum consensus spec SSZ types to OpenAPI type schema definitions"
 authors = ["dapplion <35266934+dapplion@users.noreply.github.com>"]
+readme = "README.md"
 
 [tool.poetry.dependencies]
 python = "^3.8"
+pyyaml = "^6.0.1"
+requests = "^2.31.0"
+deepmerge = "^1.1.1"
+types-requests = "^2.31.0.20240106"
+types-pyyaml = "^6.0.12.12"
 
 [tool.poetry.dev-dependencies]
 pytest = "^6.2.4"
